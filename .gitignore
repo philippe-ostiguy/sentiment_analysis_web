@@ -1,0 +1,6 @@
+# Project exclude paths
+/venv/
+.env
+/cardiffnlp/
+/web_scrapping/output/
+/cardiffnlp/
