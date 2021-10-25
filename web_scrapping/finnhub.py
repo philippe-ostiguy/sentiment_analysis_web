@@ -75,7 +75,6 @@ class FinnHub(InitNewsHeadline):
         PRETRAINED_MODEL_PATH = 'lid.176.bin'
         self.model = fasttext.load_model(PRETRAINED_MODEL_PATH)
 
-
         #Start date must be within 1 year from now for request with the free version of FinHub
         if (datetime.strptime(self.start_date, "%Y-%m-%d") <= (datetime.now() - relativedelta(years=1))):
             raise Exception("'start_date' is older than 1 year. It doesn't work with the free version of FinHub")
