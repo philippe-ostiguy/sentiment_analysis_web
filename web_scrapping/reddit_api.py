@@ -46,7 +46,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
-
+from webdriver_manager.firefox import GeckoDriverManager
 
 
 class RedditApi_():
@@ -273,7 +273,11 @@ class RedditApi_():
         self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qezvzm/what_are_your_moves_tomorrow_october_25_2021/?sort=new'
 
         #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
-        driver = webdriver.Firefox()
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference('intl.accept_languages', 'en-US, en')
+        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(),firefox_profile=profile)
+
+        #driver = webdriver.Firefox(executable_path=self.driver_file_name)
         driver.get(self.tempo_endpoint)
         time.sleep(2)
 
@@ -330,9 +334,16 @@ class RedditApi_():
 
         while not element:
 
+            if not is_clicking:
+                i +=1
+
             if is_clicking:
                 button_click.click()
+                time.sleep(0.5)
                 is_clicking = False
+
+            if i < 1 :
+                i = 1
 
             # go to section in window according to `i` and `screen_height`
             driver.execute_script(
@@ -341,7 +352,7 @@ class RedditApi_():
             #return DOM body height
             scroll_height = driver.execute_script("return document.body.scrollHeight;")
 
-            i += 1
+
             #check if we are a the end of the page
             if (screen_height) * i > scroll_height:
                 print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
