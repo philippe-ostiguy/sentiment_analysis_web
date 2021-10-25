@@ -355,10 +355,18 @@ class RedditApi_():
 
             #check if we are a the end of the page
             if (screen_height) * i > scroll_height:
-                print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
-                               f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
-                      f" is too 'young'")
-                break
+                #the scrolling may go to quickly and arrives at the end of the page prematurely
+                try :
+                    button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
+                    time.sleep(2)
+                    is_clicking = True
+                    i -= 1
+
+                except:
+                    print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
+                                   f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
+                          f" is too 'young'")
+                    break
 
 
             #Check if there is a button 'MoreComments' and click on it to load more comments
