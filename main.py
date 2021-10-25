@@ -35,9 +35,7 @@ import pandas as pd
 from initialize import InitNewsHeadline, InitStockTwit
 import requests
 import bs4 as bs
-from transformers import BertTokenizer, BertForSequenceClassification
-from scipy.special import softmax
-import numpy as np
+
 
 def get_tickers():
     """Method that gets the stock symbols from companies listed in the S&P 500

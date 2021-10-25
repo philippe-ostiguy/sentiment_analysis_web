@@ -129,8 +129,9 @@ class RedditApi_():
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = '' #Temporary endpoint - we add the ticker we want to webscrap at the end of
                                  #self.stock_endpoint
-        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
-        self.scroll_pause_time = 1
+        #self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
+        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
+        self.scroll_pause_time = 0.5
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU' #time
         self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk' #whole post
         self.class_more_comments ='_3_mqV5-KnILOxl1TvgYtCk'
@@ -260,17 +261,19 @@ class RedditApi_():
         """
 
         option = Options()
-        option.add_argument("--disable-infobars")
-        option.add_argument("start-maximized")
-        option.add_argument("--disable-extensions")
+        #option.add_argument("--disable-infobars")
+        #option.add_argument("start-maximized")
+        #option.add_argument("--disable-extensions")
 
         # Pass the argument 1 to allow notifications and 2 to block them
         option.add_experimental_option("prefs", {
-            "profile.default_content_setting_values.notifications": 1
+            "profile.default_content_setting_values.notifications": 2
         })
-        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qdoyyj/weekend_discussion_thread_for_the_weekend_of/?sort=new'
 
-        driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qezvzm/what_are_your_moves_tomorrow_october_25_2021/?sort=new'
+
+        #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        driver = webdriver.Firefox()
         driver.get(self.tempo_endpoint)
         time.sleep(2)
 
