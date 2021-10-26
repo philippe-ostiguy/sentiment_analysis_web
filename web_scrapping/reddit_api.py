@@ -121,7 +121,7 @@ class RedditApi_():
 
         self.subreddit = 'wallstreetbets'
         self.stock_keywords = ['TSLA','Tesla']
-        self.time_ago =48
+        self.time_ago =72
         self.sort_comments_method = "new"
         self.buffer_date = 5
         self.date__ = []
@@ -198,11 +198,11 @@ class RedditApi_():
                     or_tempo = ''
                 if (self.time_ago + i) < 24 :
                     str_tempo = str(self.time_ago + i)
-                    self.date_ += ''.join(['./text()=,','"',str_tempo, 'h','"',or_tempo])
+                    self.date_ += ''.join(['./text()=','"',str_tempo, 'h','"',or_tempo])
                     self.date__.append(str_tempo + 'h')
                 else :
                     str_tempo = str(day_tempo)
-                    self.date_ += ''.join(['./text()=,','"',str_tempo, 'd','"',or_tempo])
+                    self.date_ += ''.join(['./text()=','"',str_tempo, 'd','"',or_tempo])
                     self.date__.append(str(str_tempo + 'd'))
 
                     day_tempo +=1
@@ -215,12 +215,12 @@ class RedditApi_():
                 if (i+1) == self.buffer_date :
                     or_tempo = ''
                 str_tempo = str(tempo_time + i)
-                self.date_ += ''.join(['./text()=,', '"', str_tempo, 'd', '"', or_tempo])
+                self.date_ += ''.join(['./text()=', '"', str_tempo, 'd', '"', or_tempo])
                 self.date__.append(str(str_tempo + 'd'))
 
                 i+=1
         #right parenthisis in the function `EC.presence_of_element_located()`
-        self.date_ += ")]"
+        self.date_ += ")"
         t = 5
 
     def accepted_replies(self):
@@ -270,7 +270,7 @@ class RedditApi_():
             "profile.default_content_setting_values.notifications": 2
         })
 
-        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qezvzm/what_are_your_moves_tomorrow_october_25_2021/?sort=new'
+        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qe2ki6/most_anticipated_earnings_releases_for_the/?sort=new'
 
         #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
         profile = webdriver.FirefoxProfile()
@@ -377,14 +377,16 @@ class RedditApi_():
                 # we clicked on all the button that we want to click on
 
 
-            #Trying to find the elements (@class `self.class_time` and the date `self.date_`)
+            #Trying to find the elements (@class `self.class_time` and the date `self.date_`.). We
             try:
 
-                element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = self.class_time and "
-                                "contains(@id, 'CommentTopMeta') and " + self.date_)))
+                element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
+                        "contains(@id, 'CommentTopMeta') and '{}' and not(./text() = 'Stickied comment')]"
+                                                                     .format(self.class_time,self.date_))))
 
+                t = element.text
                 self.reddit_time = driver.find_elements_by_xpath(
-                    "//a[contains(@class,'{}')]".format(self.class_time))
+                    "//a[contains(@class,'{}') and not (./text() = 'Stickied comment')]".format(self.class_time))
 
                 #here we need to loop through the element `self.class_time` to make sure that the `text()` founds
                 #is in the xpath `self.class_time`, not in another xpath (in the post itself for example)
@@ -392,10 +394,9 @@ class RedditApi_():
                 j = i
                 for reddit in self.reddit_time:
                     #skip the stickied comment
-                    if j == 1 :
+                    if j == 2 :
                         j += 1
                         continue
-                    j += 1
                     for date_ in self.date__:
                         if date_ == reddit.text :
                             element = True
