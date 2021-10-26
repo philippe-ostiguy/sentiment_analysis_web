@@ -121,7 +121,7 @@ class RedditApi_():
 
         self.subreddit = 'wallstreetbets'
         self.stock_keywords = ['TSLA','Tesla']
-        self.time_ago =24
+        self.time_ago =48
         self.sort_comments_method = "new"
         self.buffer_date = 5
         self.date__ = []
@@ -198,11 +198,11 @@ class RedditApi_():
                     or_tempo = ''
                 if (self.time_ago + i) < 24 :
                     str_tempo = str(self.time_ago + i)
-                    self.date_ += ''.join(['contains(text(),','"',str_tempo, 'h','"',')',or_tempo])
+                    self.date_ += ''.join(['./text()=,','"',str_tempo, 'h','"',or_tempo])
                     self.date__.append(str_tempo + 'h')
                 else :
                     str_tempo = str(day_tempo)
-                    self.date_ += ''.join(['contains(text(),','"',str_tempo, 'd','"',')',or_tempo])
+                    self.date_ += ''.join(['./text()=,','"',str_tempo, 'd','"',or_tempo])
                     self.date__.append(str(str_tempo + 'd'))
 
                     day_tempo +=1
@@ -215,7 +215,7 @@ class RedditApi_():
                 if (i+1) == self.buffer_date :
                     or_tempo = ''
                 str_tempo = str(tempo_time + i)
-                self.date_ += ''.join(['contains(text(),', '"', str_tempo, 'd', '"', ')', or_tempo])
+                self.date_ += ''.join(['./text()=,', '"', str_tempo, 'd', '"', or_tempo])
                 self.date__.append(str(str_tempo + 'd'))
 
                 i+=1
@@ -334,13 +334,8 @@ class RedditApi_():
 
         while not element:
 
-            if not is_clicking:
-                i +=1
-
             if is_clicking:
                 button_click.click()
-                time.sleep(0.5)
-                is_clicking = False
 
             if i < 1 :
                 i = 1
@@ -352,29 +347,30 @@ class RedditApi_():
             #return DOM body height
             scroll_height = driver.execute_script("return document.body.scrollHeight;")
 
+            if not is_clicking:
+                i +=1
+                #check if we are a the end of the page
+                if (screen_height) * i > scroll_height:
+                    #the scrolling may go to quickly and arrives at the end of the page prematurely
+                    try :
+                        button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
+                        is_clicking = True
+                        i =1
 
-            #check if we are a the end of the page
-            if (screen_height) * i > scroll_height:
-                #the scrolling may go to quickly and arrives at the end of the page prematurely
-                try :
-                    button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
-                    time.sleep(2)
-                    is_clicking = True
-                    i -= 1
+                    except:
+                        print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
+                                       f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
+                              f" is too 'young'")
+                        break
 
-                except:
-                    print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
-                                   f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
-                          f" is too 'young'")
-                    break
-
+            is_clicking = False
 
             #Check if there is a button 'MoreComments' and click on it to load more comments
             try:
 
                 button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
                 is_clicking = True
-                i-=1
+                i = 1
 
             except:
                 pass
@@ -384,8 +380,8 @@ class RedditApi_():
             #Trying to find the elements (@class `self.class_time` and the date `self.date_`)
             try:
 
-                element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[contains(@class,self.class_time)"
-                            " and " +  self.date_)))
+                element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = self.class_time and "
+                                "contains(@id, 'CommentTopMeta') and " + self.date_)))
 
                 self.reddit_time = driver.find_elements_by_xpath(
                     "//a[contains(@class,'{}')]".format(self.class_time))
@@ -393,13 +389,13 @@ class RedditApi_():
                 #here we need to loop through the element `self.class_time` to make sure that the `text()` founds
                 #is in the xpath `self.class_time`, not in another xpath (in the post itself for example)
                 element = None
-                i = 0
+                j = i
                 for reddit in self.reddit_time:
                     #skip the stickied comment
-                    if i == 1 :
-                        i += 1
+                    if j == 1 :
+                        j += 1
                         continue
-                    i += 1
+                    j += 1
                     for date_ in self.date__:
                         if date_ == reddit.text :
                             element = True
@@ -409,9 +405,6 @@ class RedditApi_():
 
             except TimeoutException:
                 pass
-
-            if (i == 40):
-                element = True
 
     def read_comments_selenium(self, submissions):
         """ This method allow to read first level comments (not sublevel comment) :
