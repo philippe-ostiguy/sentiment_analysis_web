@@ -101,16 +101,13 @@ class RedditApi_():
             Name of the class in Reddit for the more comments button (load more comments)
         `self.reddit_endpoint` : str
             Endpoint of the stock we want to webscrap
-        `self.buffer_date` : int
-            nb of values we use for `self.date_` as a buffer to search the date we want in posts (function :
-            `self.convert_time()`)
-        `self.date__`: list
-            list that contains the dates until which we will look for the data
         `self.number_of_submissions` : int
             number of submissions in reddit we want to webscrap data
         `self.min_replies` : int
             minimum of reply in reddit to click on it. Ex : we don't want to click on all the '1 more reply' as it takes
             times
+        `self.date_` : str
+            date until which we webscrap data
         """
 
         self.username = config('USERNAME_REDDIT')
@@ -123,16 +120,16 @@ class RedditApi_():
         self.stock_keywords = ['TSLA','Tesla']
         self.time_ago =72
         self.sort_comments_method = "new"
-        self.buffer_date = 5
-        self.date__ = []
+        self.date_ = ""
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = '' #Temporary endpoint - we add the ticker we want to webscrap at the end of
                                  #self.stock_endpoint
-        #self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
-        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
+        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
+        #self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
         self.scroll_pause_time = 0.5
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU' #time
+        self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR' #class time with more details
         self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk' #whole post
         self.class_more_comments ='_3_mqV5-KnILOxl1TvgYtCk'
         self.class_post = '_3cjCphgls6DH-irkVaA0GM' #post
@@ -169,59 +166,14 @@ class RedditApi_():
             have a creation date of `5h` ago)
         if `self.time_ago` >= 24, publication date format in Reddit is day (ex: ex: a post published 28 hours ago will
             have a creation date of `1d` ago)
-
-        We create `self.date_` with `self.buffer_date` values :
-        -With Selenium, because of AJAX techniques the page  may load too slowly (with paramaters
-            `self.pause_scroll_time` too low) not giving enough time to `EC.presence_of_element_located()` to find
-            the element(s) in `self.scroll_to_value(self,driver)`
-        -In the function `self.scroll_to_value(self,driver)` we may not find the expected `self.date_` value (ex:
-            we are looking up for the posts during the last hour. It is possible that the latest posts we published 3
-            hour ago). This is why we use a buffer.
-
         """
 
-        now = datetime.now()  # get the current datetime, this is our starting point
-        start_time = now - timedelta(hours=self.time_ago)  # datetime according to the number of the days ago we want
-
-        #Write the day in Xpath format for reddit
-        #write `self.date_` according to the format in Reddit. It depends on how far we webscrap data
-
-        #create a left parenthesis, it's the first part of the string to pass in function
-        #`EC.presence_of_element_located()`
-        self.date_ = "("
-        i = 0
-        day_tempo = 1
-        or_tempo = ' or '
-        if self.time_ago < 24 :
-            while i < self.buffer_date :
-                if (i+1) == self.buffer_date :
-                    or_tempo = ''
-                if (self.time_ago + i) < 24 :
-                    str_tempo = str(self.time_ago + i)
-                    self.date_ += ''.join(['./text()=','"',str_tempo, 'h','"',or_tempo])
-                    self.date__.append(str_tempo + 'h')
-                else :
-                    str_tempo = str(day_tempo)
-                    self.date_ += ''.join(['./text()=','"',str_tempo, 'd','"',or_tempo])
-                    self.date__.append(str(str_tempo + 'd'))
-
-                    day_tempo +=1
-
-                i+=1
-
-        if self.time_ago >= 24:
-            tempo_time = self.time_ago // 24
-            while i < self.buffer_date:
-                if (i+1) == self.buffer_date :
-                    or_tempo = ''
-                str_tempo = str(tempo_time + i)
-                self.date_ += ''.join(['./text()=', '"', str_tempo, 'd', '"', or_tempo])
-                self.date__.append(str(str_tempo + 'd'))
-
-                i+=1
-        #right parenthisis in the function `EC.presence_of_element_located()`
-        self.date_ += ")"
-        t = 5
+        if self.time_ago  < 24 :
+            str_tempo = str(self.time_ago)
+            self.date_ = ''.join([str_tempo, 'h'])
+        else :
+            str_tempo = str(self.time_ago//24)
+            self.date_ = ''.join([str_tempo, 'd'])
 
     def accepted_replies(self):
         """ Method to make a list of the 'MoreComments' buttons we click on it. It depends on the number on replies
@@ -272,12 +224,11 @@ class RedditApi_():
 
         self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qe2ki6/most_anticipated_earnings_releases_for_the/?sort=new'
 
-        #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
-        profile = webdriver.FirefoxProfile()
-        profile.set_preference('intl.accept_languages', 'en-US, en')
-        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(),firefox_profile=profile)
+        driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        #profile = webdriver.FirefoxProfile()
+        #profile.set_preference('intl.accept_languages', 'en-US, en')
+        #driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(),firefox_profile=profile)
 
-        #driver = webdriver.Firefox(executable_path=self.driver_file_name)
         driver.get(self.tempo_endpoint)
         time.sleep(2)
 
@@ -337,9 +288,6 @@ class RedditApi_():
             if is_clicking:
                 button_click.click()
 
-            if i < 1 :
-                i = 1
-
             # go to section in window according to `i` and `screen_height`
             driver.execute_script(
                 "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
@@ -367,42 +315,25 @@ class RedditApi_():
 
             #Check if there is a button 'MoreComments' and click on it to load more comments
             try:
-
                 button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
                 is_clicking = True
-                i = 1
 
             except:
                 pass
-                # we clicked on all the button that we want to click on
 
-
-            #Trying to find the elements (@class `self.class_time` and the date `self.date_`.). We
+            #Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
+            # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
             try:
+                #element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
+                 #       "./a[contains(@id, 'CommentTopMeta')] and '{}' and not (./span/text() = 'Stickied comment')]"
+                  #                                                   .format(self.class_time_whole,self.date_))))
 
-                element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
-                        "contains(@id, 'CommentTopMeta') and '{}' and not(./text() = 'Stickied comment')]"
-                                                                     .format(self.class_time,self.date_))))
+                element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
+                        "./a[contains(@id, 'CommentTopMeta')] and (./a/text() = '{}')  and not (./span/text() = 'Stickied comment')]"
+                                                                    .format(self.class_time_whole,self.date_))))
 
                 t = element.text
-                self.reddit_time = driver.find_elements_by_xpath(
-                    "//a[contains(@class,'{}') and not (./text() = 'Stickied comment')]".format(self.class_time))
 
-                #here we need to loop through the element `self.class_time` to make sure that the `text()` founds
-                #is in the xpath `self.class_time`, not in another xpath (in the post itself for example)
-                element = None
-                j = i
-                for reddit in self.reddit_time:
-                    #skip the stickied comment
-                    if j == 2 :
-                        j += 1
-                        continue
-                    for date_ in self.date__:
-                        if date_ == reddit.text :
-                            element = True
-                            break
-                    if element == True :
-                        break
 
             except TimeoutException:
                 pass
