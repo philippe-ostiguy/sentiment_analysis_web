@@ -222,12 +222,12 @@ class RedditApi_():
             "profile.default_content_setting_values.notifications": 2
         })
 
-        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qe2ki6/most_anticipated_earnings_releases_for_the/?sort=new'
+        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qil34t/weekend_discussion_thread_for_the_weekend_of/?sort=new'
 
-        driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
-        #profile = webdriver.FirefoxProfile()
-        #profile.set_preference('intl.accept_languages', 'en-US, en')
-        #driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(),firefox_profile=profile)
+        #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference('intl.accept_languages', 'en-US, en')
+        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(),firefox_profile=profile)
 
         driver.get(self.tempo_endpoint)
         time.sleep(2)
@@ -333,7 +333,6 @@ class RedditApi_():
                                                                     .format(self.class_time_whole,self.date_))))
 
                 t = element.text
-
 
             except TimeoutException:
                 pass
