@@ -127,7 +127,7 @@ class RedditApi_():
                                  #self.stock_endpoint
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         #self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
-        self.scroll_pause_time = 0.5
+        self.scroll_pause_time = 2
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU' #time
         self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR' #class time with more details
         self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk' #whole post
@@ -135,9 +135,9 @@ class RedditApi_():
         self.class_more_comments='_3sf33-9rVAO_v4y0pIW_CH'
         self.class_post = '_3cjCphgls6DH-irkVaA0GM' #post
         self.min_replies = 100
-        self.replies_buffer = 40000 #max numbers of comments we put in the contains to search for a min numbers of comments
+        self.replies_buffer = 1000 #max numbers of comments we put in the contains to search for a min numbers of comments
         self.min_reply_list = [] #associated list with the `self.min_replies` attribute
-        self.allowed_replies_list = "" #list of MoreComments buttons we don't click on it. It depends of
+        self.rejected_replies_list = "" #list of MoreComments buttons we don't click on it. It depends of
                                         #`self.min_replies`
 
         self.reddit_result = pd.DataFrame()
@@ -147,7 +147,7 @@ class RedditApi_():
     def __call__(self):
 
         self.convert_time()
-        self.accepted_replies()
+        self.rejected_replies()
         # Authentical with OAuth and Reddit API
         reddit = praw.Reddit(client_id=self.client_id,
                              client_secret=self.client_secret,
@@ -176,20 +176,33 @@ class RedditApi_():
             str_tempo = str(self.time_ago//24)
             self.date_ = ''.join([str_tempo, 'd'])
 
-    def accepted_replies(self):
-        """ Method to make a list of the 'MoreComments' buttons we click on it. It depends on the number on replies
+    def rejected_replies(self):
+        """ Method to make a list of the 'MoreComments' buttons we don't click on. It depends on the number on replies
         `self.min_replies`. Ex: We may not want to click on all more comments button '1 more reply' as it takes times.
         """
         
-        #We put in `self.allowed_replies_list` all the 'moreComments' we are allowed to click on
-        i =0
+        #We put in `self.rejected_replies_list` all the 'moreComments' we are not allowed to click on
+        i =1
+
+        while i < self.min_replies:
+            if i == 1 :
+                self.rejected_replies_list += ''.join([' and not(./div/p/text() = ','"',str(i), ' more reply','")'])
+            else :
+                self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
+
+            i+=1
+
+        t = 5
+        """
+        
+        i = 0
         while i + self.min_replies < self.replies_buffer :
             if (i + self.min_replies) < 1000 :
                 if i == 0 :
-                    self.allowed_replies_list += ''.join([' and ((contains(.,', '"', str(i +self.min_replies),
+                    self.rejected_replies_list += ''.join([' and ((contains(.,', '"', str(i +self.min_replies),
                                                            ' more reply', '"))'])
                 else :
-                    self.allowed_replies_list += ''.join([' or (contains(.,', '"', str(i + self.min_replies),
+                    self.rejected_replies_list += ''.join([' or (contains(.,', '"', str(i + self.min_replies),
                                                            ' more replies', '"))'])
 
             #separating thousand with comma. Ex : 7,019 more replies
@@ -206,16 +219,16 @@ class RedditApi_():
 
 
                 if i == 0 :
-                    self.allowed_replies_list += ''.join([' and ((contains(.,', '"',thousand_,',',hundred_,
+                    self.rejected_replies_list += ''.join([' and ((contains(.,', '"',thousand_,',',hundred_,
                                                            ' more replies', '"))'])
 
                 else :
-                    self.allowed_replies_list += ''.join([' or (contains(.,', '"',thousand_,',',hundred_,
+                    self.rejected_replies_list += ''.join([' or (contains(.,', '"',thousand_,',',hundred_,
                                                            ' more replies', '"))'])
             i+=1
 
-        self.allowed_replies_list += ')'
-
+        self.rejected_replies_list += ')'
+        """
 
     def webscrap_content(self):
         """Method to web-scrap content on Reddit using Selenium
@@ -288,8 +301,9 @@ class RedditApi_():
         element = None
         screen_height = driver.execute_script("return window.screen.height;") #return window screen height
         i = 1
-        button_click_text =  '//div[contains(@class,self.class_more_comments) and (contains(@id,"moreComments"))' +\
-                             self.allowed_replies_list + ']'
+        button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
+                            + self.rejected_replies_list
+
         is_clicking = False #not clicking on a button by default
 
         while not element:
@@ -310,7 +324,7 @@ class RedditApi_():
                 if (screen_height) * i > scroll_height:
                     #the scrolling may go to quickly and arrives at the end of the page prematurely
                     try :
-                        button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
+                        button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
                         is_clicking = True
                         i =1
 
@@ -323,8 +337,11 @@ class RedditApi_():
             is_clicking = False
 
             #Check if there is a button 'MoreComments' and click on it to load more comments
+            #RENDU ICI
             try:
-                button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
+                button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
+                #button_click_text += ' and not(@id = "{}")'.format(button_click.get_attribute("id"))
+
                 is_clicking = True
 
             except:
@@ -333,9 +350,6 @@ class RedditApi_():
             #Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
             # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
             try:
-                #element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
-                 #       "./a[contains(@id, 'CommentTopMeta')] and '{}' and not (./span/text() = 'Stickied comment')]"
-                  #                                                   .format(self.class_time_whole,self.date_))))
 
                 element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
                         "./a[contains(@id, 'CommentTopMeta')] and (./a/text() = '{}')  and not (./span/text() = 'Stickied comment')]"
