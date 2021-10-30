@@ -131,10 +131,11 @@ class RedditApi_():
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU' #time
         self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR' #class time with more details
         self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk' #whole post
-        self.class_more_comments ='_3_mqV5-KnILOxl1TvgYtCk'
+        #self.class_more_comments ='_3_mqV5-KnILOxl1TvgYtCk'
+        self.class_more_comments='_3sf33-9rVAO_v4y0pIW_CH'
         self.class_post = '_3cjCphgls6DH-irkVaA0GM' #post
         self.min_replies = 100
-        self.replies_buffer = 30000 #max numbers of comments we put in the contains to search for a min numbers of comments
+        self.replies_buffer = 40000 #max numbers of comments we put in the contains to search for a min numbers of comments
         self.min_reply_list = [] #associated list with the `self.min_replies` attribute
         self.allowed_replies_list = "" #list of MoreComments buttons we don't click on it. It depends of
                                         #`self.min_replies`
@@ -195,13 +196,21 @@ class RedditApi_():
             else :
                 thousand_ = int((i + self.min_replies) // 1000)
                 hundred_ = int(i + self.min_replies - thousand_*1000)
+                thousand_ = str(thousand_)
+                if hundred_ < 10 :
+                    hundred_ = '00' + str(hundred_)
+                elif hundred_ < 100 :
+                    hundred_ = '0' + str(hundred_)
+                else :
+                    hundred_ = str (hundred_)
+
 
                 if i == 0 :
-                    self.allowed_replies_list += ''.join([' and ((contains(.,', '"',str(thousand_),',',str(hundred_),
+                    self.allowed_replies_list += ''.join([' and ((contains(.,', '"',thousand_,',',hundred_,
                                                            ' more replies', '"))'])
 
                 else :
-                    self.allowed_replies_list += ''.join([' or (contains(.,', '"',str(thousand_),',',str(hundred_),
+                    self.allowed_replies_list += ''.join([' or (contains(.,', '"',thousand_,',',hundred_,
                                                            ' more replies', '"))'])
             i+=1
 
@@ -212,11 +221,11 @@ class RedditApi_():
         """Method to web-scrap content on Reddit using Selenium
         """
 
+        #Options for Chrome Driver
         option = Options()
-        #option.add_argument("--disable-infobars")
-        #option.add_argument("start-maximized")
-        #option.add_argument("--disable-extensions")
-
+        option.add_argument("--disable-infobars")
+        option.add_argument("start-maximized")
+        option.add_argument("--disable-extensions")
         # Pass the argument 1 to allow notifications and 2 to block them
         option.add_experimental_option("prefs", {
             "profile.default_content_setting_values.notifications": 2
@@ -249,7 +258,7 @@ class RedditApi_():
             #check if the post contains the stock (keywords) we are looking for
             for keyword in self.stock_keywords:
                 if keyword in reddit.text:
-                    break #not analyzi
+                    break #not analyzing the same post twic (in case we have more than 1 keyword)
 
             # remove all unescessary text (emoji, \n, other symbol like $)
             reddit_tempo = pm.text_cleanup(reddit.text)
