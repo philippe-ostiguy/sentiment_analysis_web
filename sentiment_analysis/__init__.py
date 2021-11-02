@@ -24,4 +24,4 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ##############################################################################
 
-from sentiment_analysis.twits_analysis import TwitAnalysis
+from sentiment_analysis.stocktwits_analysis import TwitAnalysis

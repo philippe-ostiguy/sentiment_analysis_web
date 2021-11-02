@@ -127,7 +127,7 @@ class RedditApi_():
                                  #self.stock_endpoint
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         #self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
-        self.scroll_pause_time = 2
+        self.scroll_pause_time = 1
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU' #time
         self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR' #class time with more details
         self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk' #whole post
@@ -191,44 +191,7 @@ class RedditApi_():
                 self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
 
             i+=1
-
         t = 5
-        """
-        
-        i = 0
-        while i + self.min_replies < self.replies_buffer :
-            if (i + self.min_replies) < 1000 :
-                if i == 0 :
-                    self.rejected_replies_list += ''.join([' and ((contains(.,', '"', str(i +self.min_replies),
-                                                           ' more reply', '"))'])
-                else :
-                    self.rejected_replies_list += ''.join([' or (contains(.,', '"', str(i + self.min_replies),
-                                                           ' more replies', '"))'])
-
-            #separating thousand with comma. Ex : 7,019 more replies
-            else :
-                thousand_ = int((i + self.min_replies) // 1000)
-                hundred_ = int(i + self.min_replies - thousand_*1000)
-                thousand_ = str(thousand_)
-                if hundred_ < 10 :
-                    hundred_ = '00' + str(hundred_)
-                elif hundred_ < 100 :
-                    hundred_ = '0' + str(hundred_)
-                else :
-                    hundred_ = str (hundred_)
-
-
-                if i == 0 :
-                    self.rejected_replies_list += ''.join([' and ((contains(.,', '"',thousand_,',',hundred_,
-                                                           ' more replies', '"))'])
-
-                else :
-                    self.rejected_replies_list += ''.join([' or (contains(.,', '"',thousand_,',',hundred_,
-                                                           ' more replies', '"))'])
-            i+=1
-
-        self.rejected_replies_list += ')'
-        """
 
     def webscrap_content(self):
         """Method to web-scrap content on Reddit using Selenium
@@ -251,12 +214,16 @@ class RedditApi_():
         profile.set_preference('intl.accept_languages', 'en-US, en')
         driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(),firefox_profile=profile)
 
+
         driver.get(self.tempo_endpoint)
         time.sleep(2)
 
         reddit_dictionary = {}  # dictionary with information from twits
 
+        start_time = time.time()
         self.scroll_to_value(driver)
+        end_time = time.time()
+        difference = end_time - start_time
         self.reddit_post = driver.find_elements_by_xpath(
             "//div[contains(@class,'{}')]".format(self.class_post))
 
@@ -308,44 +275,27 @@ class RedditApi_():
 
         while not element:
 
-            if is_clicking:
-                button_click.click()
-
             # go to section in window according to `i` and `screen_height`
             driver.execute_script(
                 "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
-
             #return DOM body height
             scroll_height = driver.execute_script("return document.body.scrollHeight;")
 
-            if not is_clicking:
-                i +=1
-                #check if we are a the end of the page
-                if (screen_height) * i > scroll_height:
-                    #the scrolling may go to quickly and arrives at the end of the page prematurely
-                    try :
-                        button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
-                        is_clicking = True
-                        i =1
-
-                    except:
-                        print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
-                                       f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
-                              f" is too 'young'")
-                        break
-
+            i +=1
             is_clicking = False
 
-            #Check if there is a button 'MoreComments' and click on it to load more comments
-            #RENDU ICI
-            try:
-                button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
-                #button_click_text += ' and not(@id = "{}")'.format(button_click.get_attribute("id"))
+            #check if we are a the end of the page
+            if (screen_height) * i > scroll_height:
+                #the scrolling may go to quickly and arrives at the end of the page prematurely
+                try :
+                    button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
+                    button_click.click()
 
-                is_clicking = True
-
-            except:
-                pass
+                except:
+                    print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
+                                   f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
+                          f" is too 'young'")
+                    break
 
             #Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
             # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
@@ -354,10 +304,18 @@ class RedditApi_():
                 element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
                         "./a[contains(@id, 'CommentTopMeta')] and (./a/text() = '{}')  and not (./span/text() = 'Stickied comment')]"
                                                                     .format(self.class_time_whole,self.date_))))
-
-                t = element.text
+                break
 
             except TimeoutException:
+                pass
+
+            #Check if there is a button 'MoreComments' and click on it to load more comments
+            try:
+                button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
+                button_click.click()
+                is_clicking = True
+
+            except:
                 pass
 
     def read_comments_selenium(self, submissions):
