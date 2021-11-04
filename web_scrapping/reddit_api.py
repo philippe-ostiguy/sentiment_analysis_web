@@ -108,6 +108,8 @@ class RedditApi_():
             times
         `self.date_` : str
             date until which we webscrap data
+        `self.class_submission_time` : str
+            class to get the time a submission was published
         """
 
         self.username = config('USERNAME_REDDIT')
@@ -131,11 +133,10 @@ class RedditApi_():
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU' #time
         self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR' #class time with more details
         self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk' #whole post
-        #self.class_more_comments ='_3_mqV5-KnILOxl1TvgYtCk'
         self.class_more_comments='_3sf33-9rVAO_v4y0pIW_CH'
         self.class_post = '_3cjCphgls6DH-irkVaA0GM' #post
+        self.class_submission_time = '_3jOxDPIQ0KaOWpzvSQo-1s'
         self.min_replies = 100
-        self.replies_buffer = 1000 #max numbers of comments we put in the contains to search for a min numbers of comments
         self.min_reply_list = [] #associated list with the `self.min_replies` attribute
         self.rejected_replies_list = "" #list of MoreComments buttons we don't click on it. It depends of
                                         #`self.min_replies`
@@ -207,7 +208,7 @@ class RedditApi_():
             "profile.default_content_setting_values.notifications": 2
         })
 
-        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qil34t/weekend_discussion_thread_for_the_weekend_of/?sort=new'
+        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qmchv8/pretty_bullish_ta_on_the_weekly_chart_for_gme/?sort=new'
 
         #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
         profile = webdriver.FirefoxProfile()
@@ -297,17 +298,33 @@ class RedditApi_():
                           f" is too 'young'")
                     break
 
-            #Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
-            # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
-            try:
+            #RENDU ICI
+            #try:
+            creation_time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
+                                   "@data-click-id = 'timestamp']".format(self.class_submission_time))))
 
-                element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
-                        "./a[contains(@id, 'CommentTopMeta')] and (./a/text() = '{}')  and not (./span/text() = 'Stickied comment')]"
-                                                                    .format(self.class_time_whole,self.date_))))
-                break
+            is_older = self.compare_time(creation_time_element)
 
-            except TimeoutException:
-                pass
+            #except:
+             #   raise Exception(f"Not able to find the time the submission was published. Maybe a problem with waiting"
+              #                  f"value {self.scroll_pause_time} or with the class to get the time the submission was "
+               #                 f"created {self.class_submission_time}")
+
+            #try to find posts that were published `self.time_ago` only if the submission was created before that.
+            #Otherwise, searching for the element is time consuming (and slow down the process a lot).
+            if is_older :
+
+                #Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
+                # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
+                try:
+
+                    element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
+                            "./a[contains(@id, 'CommentTopMeta')] and (./a/text() = '{}')  and not (./span/text() = "
+                            "'Stickied comment')]".format(self.class_time_whole,self.date_))))
+                    break
+
+                except TimeoutException:
+                    pass
 
             #Check if there is a button 'MoreComments' and click on it to load more comments
             try:
@@ -317,6 +334,30 @@ class RedditApi_():
 
             except:
                 pass
+
+    def compare_time(self,element):
+        """ Method that return True if the submission was published before `self.time_ago` and False otherwise
+
+        Ex : the submission was created '2 days ago', and we are looking for posts that were published 1 day ago, then
+        it returns True"""
+
+        time_format = element.text.split(' ')[1]
+        #check if it is 'day ago' or 'hours ago' to get 'hours ago' at the end
+        time_number = int(element.text.split(' ')[0])
+
+        if (time_format == 'day' or time_format == 'days'):
+            if ((24*time_number) >= self.time_ago):
+                return True
+            else :
+                return False
+
+        else :
+            if time_number >= self.time_ago :
+                return True
+            else :
+                return False
+
+
 
     def read_comments_selenium(self, submissions):
         """ This method allow to read first level comments (not sublevel comment) :
