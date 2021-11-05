@@ -299,16 +299,19 @@ class RedditApi_():
                     break
 
             #RENDU ICI
-            #try:
-            creation_time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
+            try:
+                creation_time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
                                    "@data-click-id = 'timestamp']".format(self.class_submission_time))))
 
-            is_older = self.compare_time(creation_time_element)
 
-            #except:
-             #   raise Exception(f"Not able to find the time the submission was published. Maybe a problem with waiting"
-              #                  f"value {self.scroll_pause_time} or with the class to get the time the submission was "
-               #                 f"created {self.class_submission_time}")
+            except:
+                raise Exception(f"Not able to find the time the submission was published. Maybe a problem with waiting"
+                                f"value {self.scroll_pause_time} or with the class to get the time the submission was "
+                               f"created {self.class_submission_time}")
+
+            #element exists
+            if creation_time_element :
+                is_older = self.compare_time(creation_time_element)
 
             #try to find posts that were published `self.time_ago` only if the submission was created before that.
             #Otherwise, searching for the element is time consuming (and slow down the process a lot).
