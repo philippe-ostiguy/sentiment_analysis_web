@@ -110,6 +110,13 @@ class RedditApi_():
             date until which we webscrap data
         `self.class_submission_time` : str
             class to get the time a submission was published
+        `self.buffer_time_size` : int
+            buffer (number) to fetch the dates we want. Ex :  If the buffer is 3, and `self.time_ago` is 5 hours,
+            it will also stop fetching the data if it sees 6 hours or 7 hours in the post and set the value
+            `self.date__` accordingly
+        `self.date__` : str
+            list of date we try to find in a post which will make the fetch stops if one of the date is found.
+            The lenght of the list depends on `self.buffer_time_size` and is set in function `self.set_buffer_time_size`
         """
 
         self.username = config('USERNAME_REDDIT')
@@ -140,6 +147,8 @@ class RedditApi_():
         self.min_reply_list = [] #associated list with the `self.min_replies` attribute
         self.rejected_replies_list = "" #list of MoreComments buttons we don't click on it. It depends of
                                         #`self.min_replies`
+        self.buffer_time_size = 10
+        self.date__ = ""
 
         self.reddit_result = pd.DataFrame()
         self.reddit_columns = ['comment', 'time_published','comment_score']
@@ -148,6 +157,7 @@ class RedditApi_():
     def __call__(self):
 
         self.convert_time()
+        self.set_buffer_time_size()
         self.rejected_replies()
         # Authentical with OAuth and Reddit API
         reddit = praw.Reddit(client_id=self.client_id,
@@ -177,6 +187,31 @@ class RedditApi_():
             str_tempo = str(self.time_ago//24)
             self.date_ = ''.join([str_tempo, 'd'])
 
+    def set_buffer_time_size(self):
+        """Method that set the variable `self.date__` depending on the size of the buffer `self.buffer_time_size` and 
+        how far we need data `self.time_ago`. It will stop fetching in the submission if a post contains a date within
+        the list `self.date__`
+         """
+        
+        value_ = self.time_ago
+        i = 1
+        while i < self.buffer_time_size :
+            if (i - 1 + self.time_ago) < 24:
+                str_tempo = str(i -1 + self.time_ago)
+                if i == 1:
+                    self.date__ += ''.join([' ./a/text() = ','"',str_tempo,'h"'])
+                else :
+                    self.date__ += ''.join([' or ./a/text() = ', '"', str_tempo, 'h"'])
+
+            else :
+                str_tempo = str((i - 1 + self.time_ago)//24)
+                if i == 1:
+                    self.date__ += ''.join([' ./a/text() = ','"',str_tempo,'d"'])
+                else :
+                    self.date__ += ''.join([' or ./a/text() = ', '"', str_tempo, 'd"'])
+
+            i+=1
+
     def rejected_replies(self):
         """ Method to make a list of the 'MoreComments' buttons we don't click on. It depends on the number on replies
         `self.min_replies`. Ex: We may not want to click on all more comments button '1 more reply' as it takes times.
@@ -192,7 +227,7 @@ class RedditApi_():
                 self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
 
             i+=1
-        t = 5
+
 
     def webscrap_content(self):
         """Method to web-scrap content on Reddit using Selenium
@@ -272,6 +307,9 @@ class RedditApi_():
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
 
+        date_searching =  "//span[@class = '{}' and ./a[contains(@id, 'CommentTopMeta')] and ('{}') and not " \
+                          "(./span/text() = 'Stickied comment')]".format(self.class_time_whole,self.date__)
+
         is_clicking = False #not clicking on a button by default
 
         while not element:
@@ -298,7 +336,7 @@ class RedditApi_():
                           f" is too 'young'")
                     break
 
-            #RENDU ICI
+            #RENDU ICI = SET_BUFFER_TIME (AVEC LES JOURS = NE FONCTIONNENT PAS)
             try:
                 creation_time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
                                    "@data-click-id = 'timestamp']".format(self.class_submission_time))))
@@ -321,9 +359,7 @@ class RedditApi_():
                 # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
                 try:
 
-                    element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[@class = '{}' and "
-                            "./a[contains(@id, 'CommentTopMeta')] and (./a/text() = '{}')  and not (./span/text() = "
-                            "'Stickied comment')]".format(self.class_time_whole,self.date_))))
+                    element = wait.until(EC.presence_of_element_located((By.XPATH,date_searching )))
                     break
 
                 except TimeoutException:
