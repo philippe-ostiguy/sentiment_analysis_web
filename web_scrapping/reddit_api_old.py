@@ -138,7 +138,7 @@ class RedditApi_():
 
         self.subreddit = 'wallstreetbets'
         self.stock_keywords = ['TSLA','Tesla']
-        self.time_ago  = 48
+        self.time_ago  = 1024
         self.sort_comments_method = "new"
         self.date_ = ""
 
