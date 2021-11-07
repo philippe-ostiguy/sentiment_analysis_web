@@ -24,20 +24,16 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-"""Module that makes requests to the Reddit API"""
+"""Module to webscrap data on Reddit (wallstreetbets)"""
 
-import requests
+
 from datetime import datetime, timedelta, time
 import time
-from dateutil.relativedelta import relativedelta
-from decouple import config
+
 import pandas as pd
-import praw
 import os
-from praw.models import MoreComments
 import web_scrapping.package_methods as pm
 from selenium import webdriver
-from collections import defaultdict
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -48,42 +44,23 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.firefox import GeckoDriverManager
 
-"""Module to webscrap data from reddit api. It's the 'old' one as we use time to decide until when we webscrap data.
-It stops webscrapping when it sees the 'date' in a comment. Ex: if we want the 3 previous days of data (`self.time_ago`), 
-il will stop webscrapping in the posts when the date of a comment is '3d'.
-
-The issue with that technic is that event if we filter the comments from the newest one, when we load more comments
-(clicking on button 'more replies' at the button of the page or object called 'MoreComments' when we webscrap), the new
-loaded comment won't be sorted by the newest common. 
-
-"""
 
 
 class RedditApi_():
-    """Class to make requests to the Reddit API. Thing to know :
-    -Max 60 requests per minute : https://www.reddit.com/r/redditdev/comments/gz01fo/data_rate_limit_more_than_60_requests_per_minute/
-    -Max 100 comments per request. The Package PRAW (to make API requests to Reddit) will stop making API calls
-    if there is more than 60 requests per minute made. It will resume doign API calls by itself :
-    https://www.reddit.com/r/redditdev/comments/l4uty1/what_is_the_max_number_of_comments_im_able_to/ +
-    https://praw.readthedocs.io/en/latest/code_overview/other/listinggenerator.html?highlight=1000
-    -`submission.comments.replace_more(limit=None)` retrieve additional comments (with the button in the UI
-    'load comments' or 'more replies') up to 100 commetns at a time
-    - This
-
-
+    """Class to webscrap data on Reddit using Selenium and then, analyze the comments (sentiment analysis).
+    Things to know :
+    - It's made for an analysis on a daily basis (by default, but can be changed it we modify `self.time_ago`
+    - From Tuesday to Friday, we try to get the last 24 hours of comments
+    - On Monday, we get the comments posted during the weekend
     """
 
     def __init__(self):
         """
         Attributes
         ----------
-        `self.username`,`self.password`, `self.client_id`,`self.client_secret`,`self.user_agent` : str
-            Parameters to login to the Reddit API
-        `self.subreddit` : str
-            Subreddit we want to webscrap data
+
         `self.stock_keywards` : str
             keywords for the stock that we want to webscrap data
-
         `self.limit_comments` : int
             maximum number of comments to fetch (default is 100. In general, max number allowed is 1000 :
             https://praw.readthedocs.io/en/latest/code_overview/other/listinggenerator.html#praw.models.ListingGenerator)
@@ -106,9 +83,9 @@ class RedditApi_():
             pause time when scrolling down the page. We may need to increase this value as the page may be loaded
             at different time interval and needs to be long enough :  https://selenium-python.readthedocs.io/waits.html
         `self.class_time` : str
-            Name of the class in Stocktwits containing the published time of a reddit post
-        `self.class_post` : str
-            Name of the class in Reddit containing the text of the post
+            Name of the class in reddit containing the published time of a reddit post
+        `self.class_comments` : str
+            Name of the class in Reddit containing the comments (wihin a post)
         `self.class_more_comments ` : str
             Name of the class in Reddit for the more comments button (load more comments)
         `self.reddit_endpoint` : str
@@ -129,17 +106,19 @@ class RedditApi_():
         `self.date__` : str
             list of date we try to find in a post which will make the fetch stops if one of the date is found.
             The lenght of the list depends on `self.buffer_time_size` and is set in function `self.set_buffer_time_size`
+        `self.daily_discussion_url` : str
+            URL on Reddit to obtain the daily discussion post and links
+        `self.weekend_discussion_url` : str
+            URL on reddit to obtain the weekend discussion post and links
+        `self.driver` : selenium driver
+            Selenium from driver to webscrap the data
+        `self.class_post` : str
+            class in reddit (in DOM) for the post (get URL, and time it was created)
+
         """
 
-        self.username = config('USERNAME_REDDIT')
-        self.password = config('PASSWORD_REDDIT')
-        self.client_id = config('CLIENT_ID_REDDIT')
-        self.client_secret = config('CLIENT_SECRET_REDDIT')
-        self.user_agent = config('USER_AGENT_REDDIT')
-
-        self.subreddit = 'wallstreetbets'
         self.stock_keywords = ['TSLA', 'Tesla']
-        self.time_ago = 1024
+        self.time_ago = 24
         self.sort_comments_method = "new"
         self.date_ = ""
 
@@ -149,16 +128,25 @@ class RedditApi_():
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         # self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
         self.scroll_pause_time = 1
+
+        self.daily_discussion_url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair_name%3A%22Daily' \
+                                    '%20Discussion%22&restrict_sr=1&sr_nsfw=&sort=new'
+        self.weekend_discussion_url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair_name' \
+                                      '%3A%22Weekend%20Discussion%22&restrict_sr=1&sr_nsfw=&sort=new'
+        self.class_post ='_3jOxDPIQ0KaOWpzvSQo-1s'
+
+
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU'  # time
         self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR'  # class time with more details
-        self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk'  # whole post
         self.class_more_comments = '_3sf33-9rVAO_v4y0pIW_CH'
-        self.class_post = '_3cjCphgls6DH-irkVaA0GM'  # post
+        self.class_comments = '_3cjCphgls6DH-irkVaA0GM'  # post
         self.class_submission_time = '_3jOxDPIQ0KaOWpzvSQo-1s'
+        self.list_reddit_posts = [] #list of posts we will webscrap data from on Reddit
+        self.reddit_comments= [] #list that contains the comments
+
         self.min_replies = 100
         self.min_reply_list = []  # associated list with the `self.min_replies` attribute
         self.rejected_replies_list = ""  # list of MoreComments buttons we don't click on it. It depends of
-        # `self.min_replies`
         self.buffer_time_size = 10
         self.date__ = ""
 
@@ -168,19 +156,54 @@ class RedditApi_():
 
     def __call__(self):
 
-        self.convert_time()
-        self.set_buffer_time_size()
-        self.rejected_replies()
-        # Authentical with OAuth and Reddit API
-        reddit = praw.Reddit(client_id=self.client_id,
-                             client_secret=self.client_secret,
-                             user_agent=self.user_agent,
-                             username=self.username,
-                             password=self.password)
-
+        self.time_to_search()
+        self.init_driver()
+        self.get_posts()
         self.webscrap_content()
-        submissions = reddit.subreddit(self.subreddit).hot(limit=self.number_of_submissions)
-        # self.read_comments_selenium(submissions)
+        self.analyse_content()
+
+        self.convert_time()
+        self.rejected_replies()
+
+    def init_driver(self):
+
+        # Options for Chrome Driver
+        option = Options()
+        option.add_argument("--disable-infobars")
+        option.add_argument("start-maximized")
+        option.add_argument("--disable-extensions")
+        # Pass the argument 1 to allow notifications and 2 to block them
+        option.add_experimental_option("prefs", {
+            "profile.default_content_setting_values.notifications": 2
+        })
+
+        # self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference('intl.accept_languages', 'en-US, en')
+        self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
+
+    def get_posts(self):
+        """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is
+        approximately, some comments will be a little bit older than 24 hours as when we fetch data from a post, we
+        fetch all the data.
+
+        It depends on the creation of the post. We webscrap two types of post everyday (Tuesday to Friday),
+        which makes 3 posts in total to webscrap. One of them is named 'Daily Discussion' and is generally created
+        around 6h00 am in the morning (we webscrap 2 of them per day). The other one is called 'What Are Your
+        Moves Tomorrow', and is generally created around 4h00 pm.
+        """
+
+        #save the posts we will webscrap data from.
+        #This if for the posts that we webscrap data from Tuesday to Friday
+        self.driver.get(self.daily_discussion_url)
+        time.sleep(2)
+
+        element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
+        self.list_reddit_posts = self.driver.find_elements_by_xpath(element_to_search)
+        t = self.list_reddit_posts[0].text
+        url_ = self.list_reddit_posts[0].get_attribute("href")
+        d = 5
+
 
     def convert_time(self):
         """Method to convert time readable in the Xpath in Selenium.
@@ -199,32 +222,54 @@ class RedditApi_():
             str_tempo = str(self.time_ago // 24)
             self.date_ = ''.join([str_tempo, 'd'])
 
-    def set_buffer_time_size(self):
-        """Method that set the variable `self.date__` depending on the size of the buffer `self.buffer_time_size` and
-        how far we need data `self.time_ago`. It will stop fetching in the submission if a post contains a date within
-        the list `self.date__`
+    def time_to_search(self):
+        """Method that set the variable `self.date__` depending on  how far we need data `self.time_ago`.
+        It will only fetch in the posts that time published (of post) >= `self.time_ago`
          """
 
-        value_ = self.time_ago
+        writing_minutes = True
+        i =1
+
+        #writing time for minutes
+        while True:
+            str_tempo = str(i)
+            if i == 1:
+                self.date__ += "".join(['./text() = ', '"', str_tempo, ' minute ago"'])
+            else :
+                self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' minutes ago"'])
+
+            i += 1
+
+            #60 seconds in 1 minute
+            if i == 60:
+                break
+
         i = 1
         j = 1
 
-        while i < self.buffer_time_size:
-            if (i - 1 + self.time_ago) < 24:
-                str_tempo = str(i - 1 + self.time_ago)
-                if i == 1:
-                    self.date__ += "".join([' ./a/text() = ', '"', str_tempo, 'h"'])
-                else:
-                    self.date__ += "".join([' or ./a/text() = ', '"', str_tempo, 'h"'])
+        #writing time for hours and days
+        while (i- 1)  < self.time_ago:
 
+            str_tempo = str(i)
+            #write time in hours
+            if i == 1:
+                self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' hour ago"'])
+            elif i < 24 :
+                self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' hours ago"'])
+
+            #write time in days
             else:
 
-                str_tempo = str((i - 1 + j - 1 + self.time_ago) // 24)
-                j += 24  # 24 hours in 1 day
-                if i == 1:
-                    self.date__ += "".join([' ./a/text() = ', '"', str_tempo, 'd"'])
-                else:
-                    self.date__ += "".join([' or ./a/text() = ', '"', str_tempo, 'd"'])
+                str_tempo = str((i) // 24)
+                if j == 1 :
+                    self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' day ago"'])
+                    j+=1
+
+                else :
+                    self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' days ago"'])
+                    j+=1
+
+                i += 23  # 24 hours in 1 day
             i += 1
 
     def rejected_replies(self):
@@ -248,37 +293,26 @@ class RedditApi_():
         """Method to web-scrap content on Reddit using Selenium
         """
 
-        # Options for Chrome Driver
-        option = Options()
-        option.add_argument("--disable-infobars")
-        option.add_argument("start-maximized")
-        option.add_argument("--disable-extensions")
-        # Pass the argument 1 to allow notifications and 2 to block them
-        option.add_experimental_option("prefs", {
-            "profile.default_content_setting_values.notifications": 2
-        })
-
-        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qnjay6/weekend_discussion_thread_for_the_weekend_of/?sort=new'
-
-        # driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
-        profile = webdriver.FirefoxProfile()
-        profile.set_preference('intl.accept_languages', 'en-US, en')
-        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
-
-        driver.get(self.tempo_endpoint)
+        self.tempo_endpoint = \
+        'https://www.reddit.com/r/wallstreetbets/comments/qnjay6/weekend_discussion_thread_for_the_weekend_of/?sort=new'
+        self.driver.get(self.tempo_endpoint)
         time.sleep(2)
 
-        reddit_dictionary = {}  # dictionary with information from twits
-
         start_time = time.time()
-        self.scroll_to_value(driver)
+        self.scroll_to_value(self.driver)
         end_time = time.time()
         difference = end_time - start_time
-        self.reddit_post = driver.find_elements_by_xpath(
-            "//div[contains(@class,'{}')]".format(self.class_post))
+        self.reddit_comments = self.driver.find_elements_by_xpath(
+            "//div[contains(@class,'{}')]".format(self.class_comments))
 
+    def analyse_content(self):
+        """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
+         (-1 being the most negative and +1 being the most positive """
+
+        reddit_dictionary = {}  # dictionary with information from twits
         i = 0
-        for reddit in self.reddit_post:
+
+        for reddit in self.reddit_comments:
             # skip the stickied comment
             if i == 0:
                 i += 1
@@ -299,7 +333,7 @@ class RedditApi_():
 
         t = 5
 
-    def scroll_to_value(self, driver):
+    def scroll_to_value(self):
         """ method that scroll the page until the value(s) is (are) found in DOM (@class `self.class_time`
         and the date `self.date_`).
 
@@ -312,9 +346,9 @@ class RedditApi_():
         https://praw.readthedocs.io/en/stable/code_overview/models/more.html#praw.models.MoreComments
         """
 
-        wait = WebDriverWait(driver, self.scroll_pause_time)
+        wait = WebDriverWait(self.driver, self.scroll_pause_time)
         element = None
-        screen_height = driver.execute_script("return window.screen.height;")  # return window screen height
+        screen_height = self.driver.execute_script("return window.screen.height;")  # return window screen height
         i = 1
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
@@ -327,10 +361,9 @@ class RedditApi_():
         while not element:
 
             # go to section in window according to `i` and `screen_height`
-            driver.execute_script(
-                "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+            self.driver.execute_script("window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
             # return DOM body height
-            scroll_height = driver.execute_script("return document.body.scrollHeight;")
+            scroll_height = self.driver.execute_script("return document.body.scrollHeight;")
 
             i += 1
             is_clicking = False
@@ -407,128 +440,3 @@ class RedditApi_():
                 return True
             else:
                 return False
-
-    def read_comments_selenium(self, submissions):
-        """ This method allow to read first level comments (not sublevel comment) :
-        https://praw.readthedocs.io/en/latest/code_overview/other/commentforest.html#praw.models.comment_forest.CommentForest
-        It uses the Reddit API. It's the same thing as `self.read_comments()` except that it uses selenium to retrieve
-        the data (instead of the Reddit API)
-
-        1- We don't read the archived submissions as we don't they may be old and irrelevant (if not submission.archived)
-        2- We discard the stickied comment as they are posted by the moderators and may be irrelevant. They are also
-        even if we sort the posts by the newest one
-
-
-        Using Selenium instead of the Reddit API because of Reddit API limitations (because ofmax 60 requests
-        per hours, 100 comments max per requests, loading more comments which can be long
-        `submission.comments.replace_more(limit = None)` and not top level comments in the submissions are loaded,
-        even if this is what we want (bug in PRAW or need further testing?)
-        """
-
-        all_comments_body = []
-        comment_time = []
-        comment_score = []
-        comment_number = 0
-        new_comment = ""
-
-        now = datetime.now()  # get the current datetime, this is our starting point
-        # epoch unix time according how many hours (days) we want to fetch data
-        start_time = (now - timedelta(hours=self.time_ago)).timestamp()
-
-        for submission in submissions:
-            comment_number = 0
-            newest_comment_utc = None
-            submission.comment_sort = self.sort_comments_method
-            submission.comments.replace_more(limit=None)
-
-            # check only if submission is not archived
-            if not submission.archived:
-                self.tempo_endpoint = self.reddit_endpoint + str(submission) + '/?sort=new'
-                self.webscrap_content()  # scraping content using Selenium
-
-                # Iterate over all first level comments only (not sublevel comment)
-                for comment in submission.comments:
-
-                    # Check if current instance is `MoreComments`
-                    if isinstance(comment, MoreComments):
-                        continue
-
-                    if not comment.stickied:
-                        # Check if current comment is older than what we want to fetch (`self.time_ago`)
-                        if comment.created_utc < start_time:
-                            break
-                        comment_number += 1
-
-                        if newest_comment_utc and (comment.created_utc > newest_comment_utc):
-                            raise Exception(
-                                "current comment is older than previous one, which should not be the case")
-                        newest_comment_utc = comment.created_utc
-
-                        for keyword in self.stock_keywords:
-                            if keyword in comment.body:
-                                new_comment = pm.text_cleanup(comment.body)
-                                all_comments_body.append(new_comment)
-                                comment_time.append(comment.created_utc)
-                                comment_score.append(comment.score)
-
-        self.reddit_result[self.reddit_columns[0]] = all_comments_body
-        self.reddit_result[self.reddit_columns[1]] = comment_time
-        self.reddit_result[self.reddit_columns[2]] = comment_score
-
-    def read_comments(self, submissions):
-        """ This method allow to read first level comments (not sublevel comment) :
-        https://praw.readthedocs.io/en/latest/code_overview/other/commentforest.html#praw.models.comment_forest.CommentForest
-        It uses PRAW (package using Reddit API to read data in Reddit)
-
-        1- We don't read the archived submissions as we don't they may be old and irrelevant (if not submission.archived)
-        2- We discard the stickied comment as they are posted by the moderators and may be irrelevant. They are also
-        even if we sort the posts by the newest one
-        """
-
-        all_comments_body = []
-        comment_time = []
-        comment_score = []
-        comment_number = 0
-        new_comment = ""
-
-        now = datetime.now()  # get the current datetime, this is our starting point
-        # epoch unix time according how many hours (days) we want to fetch data
-        start_time = (now - timedelta(hours=self.time_ago)).timestamp()
-
-        for submission in submissions:
-            comment_number = 0
-            newest_comment_utc = None
-            submission.comment_sort = self.sort_comments_method
-            submission.comments.replace_more(limit=None)
-
-            # check only if submission is not archived
-            if not submission.archived:
-
-                # Iterate over all first level comments only (not sublevel comment)
-                for comment in submission.comments:
-
-                    # Check if current instance is `MoreComments`
-                    if isinstance(comment, MoreComments):
-                        continue
-
-                    # don't take the stickied comment as this is post by
-                    if not comment.stickied:
-                        # Check if current comment is older than what we want to fetch (`self.time_ago`)
-                        if comment.created_utc < start_time:
-                            break
-                        comment_number += 1
-
-                        if newest_comment_utc and (comment.created_utc > newest_comment_utc):
-                            raise Exception("current comment is older than previous one, which should not be the case")
-                        newest_comment_utc = comment.created_utc
-
-                        for keyword in self.stock_keywords:
-                            if keyword in comment.body:
-                                new_comment = pm.text_cleanup(comment.body)
-                                all_comments_body.append(new_comment)
-                                comment_time.append(comment.created_utc)
-                                comment_score.append(comment.score)
-
-        self.reddit_result[self.reddit_columns[0]] = all_comments_body
-        self.reddit_result[self.reddit_columns[1]] = comment_time
-        self.reddit_result[self.reddit_columns[2]] = comment_score
