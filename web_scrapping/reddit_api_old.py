@@ -48,6 +48,15 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.firefox import GeckoDriverManager
 
+"""Module to webscrap data from reddit api. It's the 'old' one as we use time to decide until when we webscrap data.
+It stops webscrapping when it sees the 'date' in a comment. Ex: if we want the 3 previous days of data (`self.time_ago`), 
+il will stop webscrapping in the posts when the date of a comment is '3d'.
+
+The issue with that technic is that event if we filter the comments from the newest one, when we load more comments
+(clicking on button 'more replies' at the button of the page or object called 'MoreComments' when we webscrap), the new
+loaded comment won't be sorted by the newest common. 
+
+"""
 
 class RedditApi_():
     """Class to make requests to the Reddit API. Thing to know :
@@ -58,6 +67,8 @@ class RedditApi_():
     https://praw.readthedocs.io/en/latest/code_overview/other/listinggenerator.html?highlight=1000
     -`submission.comments.replace_more(limit=None)` retrieve additional comments (with the button in the UI
     'load comments' or 'more replies') up to 100 commetns at a time
+    - This
+
 
     """
 
@@ -127,7 +138,7 @@ class RedditApi_():
 
         self.subreddit = 'wallstreetbets'
         self.stock_keywords = ['TSLA','Tesla']
-        self.time_ago  = 47
+        self.time_ago  = 48
         self.sort_comments_method = "new"
         self.date_ = ""
 
