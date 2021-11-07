@@ -483,7 +483,7 @@ class RedditApi_():
     def read_comments(self,submissions):
         """ This method allow to read first level comments (not sublevel comment) :
         https://praw.readthedocs.io/en/latest/code_overview/other/commentforest.html#praw.models.comment_forest.CommentForest
-        It uses the Reddit API
+        It uses PRAW (package using Reddit API to read data in Reddit)
 
         1- We don't read the archived submissions as we don't they may be old and irrelevant (if not submission.archived)
         2- We discard the stickied comment as they are posted by the moderators and may be irrelevant. They are also
