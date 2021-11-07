@@ -127,7 +127,7 @@ class RedditApi_():
 
         self.subreddit = 'wallstreetbets'
         self.stock_keywords = ['TSLA','Tesla']
-        self.time_ago =72
+        self.time_ago  = 47
         self.sort_comments_method = "new"
         self.date_ = ""
 
@@ -195,21 +195,24 @@ class RedditApi_():
         
         value_ = self.time_ago
         i = 1
+        j= 1
+
         while i < self.buffer_time_size :
             if (i - 1 + self.time_ago) < 24:
                 str_tempo = str(i -1 + self.time_ago)
                 if i == 1:
-                    self.date__ += ''.join([' ./a/text() = ','"',str_tempo,'h"'])
+                    self.date__ += "".join([' ./a/text() = ','"',str_tempo,'h"'])
                 else :
-                    self.date__ += ''.join([' or ./a/text() = ', '"', str_tempo, 'h"'])
+                    self.date__ += "".join([' or ./a/text() = ', '"', str_tempo, 'h"'])
 
             else :
-                str_tempo = str((i - 1 + self.time_ago)//24)
-                if i == 1:
-                    self.date__ += ''.join([' ./a/text() = ','"',str_tempo,'d"'])
-                else :
-                    self.date__ += ''.join([' or ./a/text() = ', '"', str_tempo, 'd"'])
 
+                str_tempo = str((i - 1 + j -1 + self.time_ago)//24)
+                j +=24 #24 hours in 1 day
+                if i == 1:
+                    self.date__ += "".join([' ./a/text() = ','"',str_tempo,'d"'])
+                else :
+                    self.date__ += "".join([' or ./a/text() = ', '"', str_tempo, 'd"'])
             i+=1
 
     def rejected_replies(self):
@@ -243,7 +246,7 @@ class RedditApi_():
             "profile.default_content_setting_values.notifications": 2
         })
 
-        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qmchv8/pretty_bullish_ta_on_the_weekly_chart_for_gme/?sort=new'
+        self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qnjay6/weekend_discussion_thread_for_the_weekend_of/?sort=new'
 
         #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
         profile = webdriver.FirefoxProfile()
@@ -307,8 +310,8 @@ class RedditApi_():
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
 
-        date_searching =  "//span[@class = '{}' and ./a[contains(@id, 'CommentTopMeta')] and ('{}') and not " \
-                          "(./span/text() = 'Stickied comment')]".format(self.class_time_whole,self.date__)
+        date_searching =  '//span[@class = "{}" and ./a[contains(@id, "CommentTopMeta")] and ({}) and not ' \
+                          '(./span/text() = "Stickied comment")]'.format(self.class_time_whole,self.date__)
 
         is_clicking = False #not clicking on a button by default
 
@@ -336,7 +339,7 @@ class RedditApi_():
                           f" is too 'young'")
                     break
 
-            #RENDU ICI = SET_BUFFER_TIME (AVEC LES JOURS = NE FONCTIONNENT PAS)
+            #get the time the submission what created
             try:
                 creation_time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
                                    "@data-click-id = 'timestamp']".format(self.class_submission_time))))
