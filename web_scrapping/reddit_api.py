@@ -27,7 +27,7 @@
 """Module that makes requests to the Reddit API"""
 
 import requests
-from datetime import datetime, timedelta,time
+from datetime import datetime, timedelta, time
 import time
 from dateutil.relativedelta import relativedelta
 from decouple import config
@@ -58,7 +58,8 @@ loaded comment won't be sorted by the newest common.
 
 """
 
-class RedditApiOld():
+
+class RedditApi_():
     """Class to make requests to the Reddit API. Thing to know :
     -Max 60 requests per minute : https://www.reddit.com/r/redditdev/comments/gz01fo/data_rate_limit_more_than_60_requests_per_minute/
     -Max 100 comments per request. The Package PRAW (to make API requests to Reddit) will stop making API calls
@@ -132,37 +133,37 @@ class RedditApiOld():
 
         self.username = config('USERNAME_REDDIT')
         self.password = config('PASSWORD_REDDIT')
-        self.client_id =config('CLIENT_ID_REDDIT')
-        self.client_secret=config('CLIENT_SECRET_REDDIT')
-        self.user_agent=config('USER_AGENT_REDDIT')
+        self.client_id = config('CLIENT_ID_REDDIT')
+        self.client_secret = config('CLIENT_SECRET_REDDIT')
+        self.user_agent = config('USER_AGENT_REDDIT')
 
         self.subreddit = 'wallstreetbets'
-        self.stock_keywords = ['TSLA','Tesla']
-        self.time_ago  = 1024
+        self.stock_keywords = ['TSLA', 'Tesla']
+        self.time_ago = 1024
         self.sort_comments_method = "new"
         self.date_ = ""
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
-        self.tempo_endpoint = '' #Temporary endpoint - we add the ticker we want to webscrap at the end of
-                                 #self.stock_endpoint
+        self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
+        # self.stock_endpoint
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
-        #self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
+        # self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
         self.scroll_pause_time = 1
-        self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU' #time
-        self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR' #class time with more details
-        self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk' #whole post
-        self.class_more_comments='_3sf33-9rVAO_v4y0pIW_CH'
-        self.class_post = '_3cjCphgls6DH-irkVaA0GM' #post
+        self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU'  # time
+        self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR'  # class time with more details
+        self.class_whole_post = '_3tw__eCCe7j-epNCKGXUKk'  # whole post
+        self.class_more_comments = '_3sf33-9rVAO_v4y0pIW_CH'
+        self.class_post = '_3cjCphgls6DH-irkVaA0GM'  # post
         self.class_submission_time = '_3jOxDPIQ0KaOWpzvSQo-1s'
         self.min_replies = 100
-        self.min_reply_list = [] #associated list with the `self.min_replies` attribute
-        self.rejected_replies_list = "" #list of MoreComments buttons we don't click on it. It depends of
-                                        #`self.min_replies`
+        self.min_reply_list = []  # associated list with the `self.min_replies` attribute
+        self.rejected_replies_list = ""  # list of MoreComments buttons we don't click on it. It depends of
+        # `self.min_replies`
         self.buffer_time_size = 10
         self.date__ = ""
 
         self.reddit_result = pd.DataFrame()
-        self.reddit_columns = ['comment', 'time_published','comment_score']
+        self.reddit_columns = ['comment', 'time_published', 'comment_score']
         self.number_of_submissions = 5
 
     def __call__(self):
@@ -179,7 +180,7 @@ class RedditApiOld():
 
         self.webscrap_content()
         submissions = reddit.subreddit(self.subreddit).hot(limit=self.number_of_submissions)
-        #self.read_comments_selenium(submissions)
+        # self.read_comments_selenium(submissions)
 
     def convert_time(self):
         """Method to convert time readable in the Xpath in Selenium.
@@ -191,63 +192,63 @@ class RedditApiOld():
             have a creation date of `1d` ago)
         """
 
-        if self.time_ago  < 24 :
+        if self.time_ago < 24:
             str_tempo = str(self.time_ago)
             self.date_ = ''.join([str_tempo, 'h'])
-        else :
-            str_tempo = str(self.time_ago//24)
+        else:
+            str_tempo = str(self.time_ago // 24)
             self.date_ = ''.join([str_tempo, 'd'])
 
     def set_buffer_time_size(self):
-        """Method that set the variable `self.date__` depending on the size of the buffer `self.buffer_time_size` and 
+        """Method that set the variable `self.date__` depending on the size of the buffer `self.buffer_time_size` and
         how far we need data `self.time_ago`. It will stop fetching in the submission if a post contains a date within
         the list `self.date__`
          """
-        
+
         value_ = self.time_ago
         i = 1
-        j= 1
+        j = 1
 
-        while i < self.buffer_time_size :
+        while i < self.buffer_time_size:
             if (i - 1 + self.time_ago) < 24:
-                str_tempo = str(i -1 + self.time_ago)
+                str_tempo = str(i - 1 + self.time_ago)
                 if i == 1:
-                    self.date__ += "".join([' ./a/text() = ','"',str_tempo,'h"'])
-                else :
+                    self.date__ += "".join([' ./a/text() = ', '"', str_tempo, 'h"'])
+                else:
                     self.date__ += "".join([' or ./a/text() = ', '"', str_tempo, 'h"'])
 
-            else :
+            else:
 
-                str_tempo = str((i - 1 + j -1 + self.time_ago)//24)
-                j +=24 #24 hours in 1 day
+                str_tempo = str((i - 1 + j - 1 + self.time_ago) // 24)
+                j += 24  # 24 hours in 1 day
                 if i == 1:
-                    self.date__ += "".join([' ./a/text() = ','"',str_tempo,'d"'])
-                else :
+                    self.date__ += "".join([' ./a/text() = ', '"', str_tempo, 'd"'])
+                else:
                     self.date__ += "".join([' or ./a/text() = ', '"', str_tempo, 'd"'])
-            i+=1
+            i += 1
 
     def rejected_replies(self):
         """ Method to make a list of the 'MoreComments' buttons we don't click on. It depends on the number on replies
         `self.min_replies`. Ex: We may not want to click on all more comments button '1 more reply' as it takes times.
         """
-        
-        #We put in `self.rejected_replies_list` all the 'moreComments' we are not allowed to click on
-        i =1
+
+        # We put in `self.rejected_replies_list` all the 'moreComments' we are not allowed to click on
+        i = 1
 
         while i < self.min_replies:
-            if i == 1 :
-                self.rejected_replies_list += ''.join([' and not(./div/p/text() = ','"',str(i), ' more reply','")'])
-            else :
-                self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
+            if i == 1:
+                self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more reply', '")'])
+            else:
+                self.rejected_replies_list += ''.join(
+                    [' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
 
-            i+=1
-
+            i += 1
 
     def webscrap_content(self):
         """Method to web-scrap content on Reddit using Selenium
         """
 
-        #Options for Chrome Driver
+        # Options for Chrome Driver
         option = Options()
         option.add_argument("--disable-infobars")
         option.add_argument("start-maximized")
@@ -259,11 +260,10 @@ class RedditApiOld():
 
         self.tempo_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/qnjay6/weekend_discussion_thread_for_the_weekend_of/?sort=new'
 
-        #driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        # driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
         profile = webdriver.FirefoxProfile()
         profile.set_preference('intl.accept_languages', 'en-US, en')
-        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(),firefox_profile=profile)
-
+        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
 
         driver.get(self.tempo_endpoint)
         time.sleep(2)
@@ -279,16 +279,16 @@ class RedditApiOld():
 
         i = 0
         for reddit in self.reddit_post:
-            #skip the stickied comment
-            if i ==0 :
+            # skip the stickied comment
+            if i == 0:
                 i += 1
                 continue
-            i+=1
+            i += 1
 
-            #check if the post contains the stock (keywords) we are looking for
+            # check if the post contains the stock (keywords) we are looking for
             for keyword in self.stock_keywords:
                 if keyword in reddit.text:
-                    break #not analyzing the same post twic (in case we have more than 1 keyword)
+                    break  # not analyzing the same post twic (in case we have more than 1 keyword)
 
             # remove all unescessary text (emoji, \n, other symbol like $)
             reddit_tempo = pm.text_cleanup(reddit.text)
@@ -297,11 +297,9 @@ class RedditApiOld():
 
             self.reddit_result = self.reddit_result.append(reddit_dictionary, ignore_index=True)
 
+        t = 5
 
-        t= 5
-
-
-    def scroll_to_value(self,driver):
+    def scroll_to_value(self, driver):
         """ method that scroll the page until the value(s) is (are) found in DOM (@class `self.class_time`
         and the date `self.date_`).
 
@@ -316,70 +314,70 @@ class RedditApiOld():
 
         wait = WebDriverWait(driver, self.scroll_pause_time)
         element = None
-        screen_height = driver.execute_script("return window.screen.height;") #return window screen height
+        screen_height = driver.execute_script("return window.screen.height;")  # return window screen height
         i = 1
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
 
-        date_searching =  '//span[@class = "{}" and ./a[contains(@id, "CommentTopMeta")] and ({}) and not ' \
-                          '(./span/text() = "Stickied comment")]'.format(self.class_time_whole,self.date__)
+        date_searching = '//span[@class = "{}" and ./a[contains(@id, "CommentTopMeta")] and ({}) and not ' \
+                         '(./span/text() = "Stickied comment")]'.format(self.class_time_whole, self.date__)
 
-        is_clicking = False #not clicking on a button by default
+        is_clicking = False  # not clicking on a button by default
 
         while not element:
 
             # go to section in window according to `i` and `screen_height`
             driver.execute_script(
                 "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
-            #return DOM body height
+            # return DOM body height
             scroll_height = driver.execute_script("return document.body.scrollHeight;")
 
-            i +=1
+            i += 1
             is_clicking = False
 
-            #check if we are a the end of the page
+            # check if we are a the end of the page
             if (screen_height) * i > scroll_height:
-                #the scrolling may go to quickly and arrives at the end of the page prematurely
-                try :
+                # the scrolling may go to quickly and arrives at the end of the page prematurely
+                try:
                     button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
                     button_click.click()
 
                 except:
                     print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
-                                   f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
+                          f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
                           f" is too 'young'")
                     break
 
-            #get the time the submission what created
+            # get the time the submission what created
             try:
                 creation_time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
-                                   "@data-click-id = 'timestamp']".format(self.class_submission_time))))
+                                                "@data-click-id = 'timestamp']".format(self.class_submission_time))))
 
 
             except:
                 raise Exception(f"Not able to find the time the submission was published. Maybe a problem with waiting"
                                 f"value {self.scroll_pause_time} or with the class to get the time the submission was "
-                               f"created {self.class_submission_time}")
+                                f"created {self.class_submission_time}")
 
-            #element exists
-            if creation_time_element :
+            # element exists
+            if creation_time_element:
                 is_older = self.compare_time(creation_time_element)
 
-            #try to find posts that were published `self.time_ago` only if the submission was created before that.
-            #Otherwise, searching for the element is time consuming (and slow down the process a lot).
-            if is_older :
+            # try to find posts that were published `self.time_ago` only if the submission was created before that.
+            # Otherwise, searching for the element is time consuming (and slow down the process a lot).
+            if is_older:
 
-                #Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
+                # Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
                 # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
                 try:
 
-                    element = wait.until(EC.presence_of_element_located((By.XPATH,date_searching )))
+                    element = wait.until(EC.presence_of_element_located((By.XPATH, date_searching)))
                     break
 
                 except TimeoutException:
                     pass
 
-            #Check if there is a button 'MoreComments' and click on it to load more comments
+            # Check if there is a button 'MoreComments' and click on it to load more comments
             try:
                 button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
                 button_click.click()
@@ -388,29 +386,27 @@ class RedditApiOld():
             except:
                 pass
 
-    def compare_time(self,element):
+    def compare_time(self, element):
         """ Method that return True if the submission was published before `self.time_ago` and False otherwise
 
         Ex : the submission was created '2 days ago', and we are looking for posts that were published 1 day ago, then
         it returns True"""
 
         time_format = element.text.split(' ')[1]
-        #check if it is 'day ago' or 'hours ago' to get 'hours ago' at the end
+        # check if it is 'day ago' or 'hours ago' to get 'hours ago' at the end
         time_number = int(element.text.split(' ')[0])
 
         if (time_format == 'day' or time_format == 'days'):
-            if ((24*time_number) >= self.time_ago):
+            if ((24 * time_number) >= self.time_ago):
                 return True
-            else :
+            else:
                 return False
 
-        else :
-            if time_number >= self.time_ago :
+        else:
+            if time_number >= self.time_ago:
                 return True
-            else :
+            else:
                 return False
-
-
 
     def read_comments_selenium(self, submissions):
         """ This method allow to read first level comments (not sublevel comment) :
@@ -448,7 +444,7 @@ class RedditApiOld():
             # check only if submission is not archived
             if not submission.archived:
                 self.tempo_endpoint = self.reddit_endpoint + str(submission) + '/?sort=new'
-                self.webscrap_content() #scraping content using Selenium
+                self.webscrap_content()  # scraping content using Selenium
 
                 # Iterate over all first level comments only (not sublevel comment)
                 for comment in submission.comments:
@@ -479,8 +475,7 @@ class RedditApiOld():
         self.reddit_result[self.reddit_columns[1]] = comment_time
         self.reddit_result[self.reddit_columns[2]] = comment_score
 
-
-    def read_comments(self,submissions):
+    def read_comments(self, submissions):
         """ This method allow to read first level comments (not sublevel comment) :
         https://praw.readthedocs.io/en/latest/code_overview/other/commentforest.html#praw.models.comment_forest.CommentForest
         It uses PRAW (package using Reddit API to read data in Reddit)
@@ -500,31 +495,30 @@ class RedditApiOld():
         # epoch unix time according how many hours (days) we want to fetch data
         start_time = (now - timedelta(hours=self.time_ago)).timestamp()
 
-
         for submission in submissions:
             comment_number = 0
             newest_comment_utc = None
             submission.comment_sort = self.sort_comments_method
             submission.comments.replace_more(limit=None)
 
-            #check only if submission is not archived
-            if not submission.archived :
+            # check only if submission is not archived
+            if not submission.archived:
 
-                #Iterate over all first level comments only (not sublevel comment)
+                # Iterate over all first level comments only (not sublevel comment)
                 for comment in submission.comments:
 
-                    #Check if current instance is `MoreComments`
+                    # Check if current instance is `MoreComments`
                     if isinstance(comment, MoreComments):
                         continue
 
-                    #don't take the stickied comment as this is post by
+                    # don't take the stickied comment as this is post by
                     if not comment.stickied:
-                        #Check if current comment is older than what we want to fetch (`self.time_ago`)
+                        # Check if current comment is older than what we want to fetch (`self.time_ago`)
                         if comment.created_utc < start_time:
                             break
                         comment_number += 1
 
-                        if newest_comment_utc and (comment.created_utc > newest_comment_utc) :
+                        if newest_comment_utc and (comment.created_utc > newest_comment_utc):
                             raise Exception("current comment is older than previous one, which should not be the case")
                         newest_comment_utc = comment.created_utc
 

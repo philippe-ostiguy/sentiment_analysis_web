@@ -26,6 +26,7 @@
 
 from web_scrapping.finnhub import FinnHub
 from web_scrapping.twitter_api import TwitterApi_
-from web_scrapping.reddit_api_old import RedditApi_
+from web_scrapping.reddit_api_old import RedditApiOld
 from web_scrapping.stocktwits_api import StockTwitsApi
 from web_scrapping.alpha_vantage import HistoricalReturn
+from web_scrapping.reddit_api import RedditApi_
