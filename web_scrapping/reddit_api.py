@@ -118,7 +118,7 @@ class RedditApi_():
         """
 
         self.stock_keywords = ['TSLA', 'Tesla']
-        self.time_ago = 24
+        self.time_ago = 72
         self.sort_comments_method = "new"
         self.date_ = ""
 
@@ -199,8 +199,9 @@ class RedditApi_():
         time.sleep(2)
 
         element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
-        self.list_reddit_posts = self.driver.find_elements_by_xpath(element_to_search)
+        self.list_reddit_posts += self.driver.find_elements_by_xpath(element_to_search)
         t = self.list_reddit_posts[0].text
+        d = self.list_reddit_posts[1].text
         url_ = self.list_reddit_posts[0].get_attribute("href")
         d = 5
 
