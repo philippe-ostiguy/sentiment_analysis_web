@@ -123,7 +123,7 @@ class RedditApi_():
         self.date_ = ""
 
         #RENDU ICI
-        t = pv.us_holidays
+        self.us_holiday = pv.us_holidays #list of US Stock Holiday in Datetime
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
