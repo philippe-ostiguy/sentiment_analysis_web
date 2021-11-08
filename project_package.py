@@ -50,39 +50,51 @@ def get_tickers():
 
     return tickers
 
+class ProjectVariables:
+    """Variables that are used across the project. We want to initialize them only once"""
 
-def get_us_holiday():
-    """Get the US Stock holidays """
 
-    resp = requests.get('https://www.nyse.com/markets/hours-calendars')
-    soup = bs.BeautifulSoup(resp.text, 'lxml')
-    # Grab the table with the US Stock holidays (first table)
-    table = soup.find_all('table', { 'class' : 'table table-layout-fixed' })[0]
-    if table == []:
-        raise Exception("Table to get US stocks holiday in function `get_us_holiday()` does not exist")
+    def __init__(self):
+        """
+        `self.us_holidays` : list
+            list of datetime object when the us stock market is closed (NYSE)
+        """
+        self.us_holidays = []
 
-    years_ = []
-    us_holidays = []
+    def __call__(self):
 
-    #get the year in the header
-    for headers_ in table.findAll('tr')[:1]:
-        for header_ in headers_.findAll('td')[1:]:
-                years_ += header_
+        #calling the functions
+        self.get_us_holiday()
 
-    for holidays_ in table.findAll('tr')[1:]:
+    def get_us_holiday(self):
+        """Get the US Stock holidays """
 
-        i = 0
-        for holiday_ in holidays_.findAll('td'):
-            if holiday_.text == "—":
+        resp = requests.get('https://www.nyse.com/markets/hours-calendars')
+        soup = bs.BeautifulSoup(resp.text, 'lxml')
+        # Grab the table with the US Stock holidays (first table)
+        table = soup.find_all('table', { 'class' : 'table table-layout-fixed' })[0]
+        if table == []:
+            raise Exception("Table to get US stocks holiday in function `get_us_holiday()` does not exist")
+
+        years_ = []
+
+        #get the year in the header
+        for headers_ in table.findAll('tr')[:1]:
+            for header_ in headers_.findAll('td')[1:]:
+                    years_ += header_
+
+        for holidays_ in table.findAll('tr')[1:]:
+
+            i = 0
+            for holiday_ in holidays_.findAll('td'):
+                if holiday_.text == "—":
+                    i+=1
+                    continue
+                print (holiday_.text)
+
+                month_ = holiday_.text.split(' ')[1]
+                day_ = re.sub("[^0-9]", "", holiday_.text.split(' ')[2])
+                year_ = years_[i]
+                date_ = "-".join([year_,month_,day_])
+                self.us_holidays.append(datetime.strptime(date_,'%Y-%B-%d'))
                 i+=1
-                continue
-            print (holiday_.text)
-
-            month_ = holiday_.text.split(' ')[1]
-            day_ = re.sub("[^0-9]", "", holiday_.text.split(' ')[2])
-            year_ = years_[i]
-            date_ = "-".join([year_,month_,day_])
-            us_holidays.append(datetime.strptime(date_,'%Y-%B-%d'))
-            i+=1
-
-    return us_holidays

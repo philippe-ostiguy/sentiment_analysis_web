@@ -54,7 +54,7 @@ class RedditApi_():
     - On Monday, we get the comments posted during the weekend
     """
 
-    def __init__(self):
+    def __init__(self,pv):
         """
         Attributes
         ----------
@@ -121,6 +121,9 @@ class RedditApi_():
         self.time_ago = 72
         self.sort_comments_method = "new"
         self.date_ = ""
+
+        #RENDU ICI
+        t = pv.us_holidays
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of

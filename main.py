@@ -33,7 +33,7 @@ import web_scrapping as ws
 import matplotlib.pyplot as plt
 import pandas as pd
 from initialize import InitNewsHeadline, InitStockTwit
-import project_package as pp
+from project_package import ProjectVariables
 
 class InitMain(InitNewsHeadline,InitStockTwit):
     """Class that initializes global value for the project. It also use general method to initialize value.
@@ -41,9 +41,6 @@ class InitMain(InitNewsHeadline,InitStockTwit):
 
     def __init__(self):
         """Built-in method to inialize the global values for the module
-
-        `self.us_holidays` : list
-            list of datetime object when the us stock market is closed (NYSE)
         """
 
         #get attributes from `initialize.py` module (global attributes for the package)
@@ -51,9 +48,11 @@ class InitMain(InitNewsHeadline,InitStockTwit):
 
         #initialize value here
         self.pd_data = pd.DataFrame()
-        self.us_holidays = pp.get_us_holiday()
 
-        ra_ = ws.RedditApi_()
+        #initialize the project variables
+        pv = ProjectVariables()
+        pv()
+        ra_ = ws.RedditApi_(pv)
         ra_() #call the built-on method 'call'
         sta_ = ws.StockTwitsApi()
         sta_()
