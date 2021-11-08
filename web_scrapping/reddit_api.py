@@ -27,7 +27,7 @@
 """Module to webscrap data on Reddit (wallstreetbets)"""
 
 
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 import time
 
 import pandas as pd
@@ -200,6 +200,7 @@ class RedditApi_():
 
         element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
         self.list_reddit_posts += self.driver.find_elements_by_xpath(element_to_search)
+
         t = self.list_reddit_posts[0].text
         d = self.list_reddit_posts[1].text
         url_ = self.list_reddit_posts[0].get_attribute("href")
@@ -238,16 +239,13 @@ class RedditApi_():
                 self.date__ += "".join(['./text() = ', '"', str_tempo, ' minute ago"'])
             else :
                 self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' minutes ago"'])
-
             i += 1
-
             #60 seconds in 1 minute
             if i == 60:
                 break
 
         i = 1
         j = 1
-
         #writing time for hours and days
         while (i- 1)  < self.time_ago:
 
@@ -257,19 +255,15 @@ class RedditApi_():
                 self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' hour ago"'])
             elif i < 24 :
                 self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' hours ago"'])
-
             #write time in days
             else:
-
                 str_tempo = str((i) // 24)
                 if j == 1 :
                     self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' day ago"'])
                     j+=1
-
                 else :
                     self.date__ += "".join([' or ./text() = ', '"', str_tempo, ' days ago"'])
                     j+=1
-
                 i += 23  # 24 hours in 1 day
             i += 1
 

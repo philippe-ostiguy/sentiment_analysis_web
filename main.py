@@ -33,28 +33,7 @@ import web_scrapping as ws
 import matplotlib.pyplot as plt
 import pandas as pd
 from initialize import InitNewsHeadline, InitStockTwit
-import requests
-import bs4 as bs
-
-
-def get_tickers():
-    """Method that gets the stock symbols from companies listed in the S&P 500
-
-    Return
-    ------
-    `tickers` : list
-        S&P 500 company symbols
-    """
-    resp = requests.get('http://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-    soup = bs.BeautifulSoup(resp.text, 'lxml')
-    table = soup.find_all('table')[0]  # Grab the first table
-
-    tickers = []
-    for row in table.findAll('tr')[1:]:
-        ticker = row.findAll('td')[0].text.strip('\n')
-        tickers.append(ticker)
-
-    return tickers
+import project_package as pp
 
 class InitMain(InitNewsHeadline,InitStockTwit):
     """Class that initializes global value for the project. It also use general method to initialize value.
@@ -62,6 +41,9 @@ class InitMain(InitNewsHeadline,InitStockTwit):
 
     def __init__(self):
         """Built-in method to inialize the global values for the module
+
+        `self.us_holidays` : list
+            list of datetime object when the us stock market is closed (NYSE)
         """
 
         #get attributes from `initialize.py` module (global attributes for the package)
@@ -69,6 +51,7 @@ class InitMain(InitNewsHeadline,InitStockTwit):
 
         #initialize value here
         self.pd_data = pd.DataFrame()
+        self.us_holidays = pp.get_us_holiday()
 
         ra_ = ws.RedditApi_()
         ra_() #call the built-on method 'call'
@@ -79,7 +62,7 @@ class InitMain(InitNewsHeadline,InitStockTwit):
 
 if __name__ == '__main__':
     init = InitMain()
-    #init.tickers = get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
+    #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
 
     #if we want to perform a news headline web_scraping using FinnHub
     if init.web_scraping:
