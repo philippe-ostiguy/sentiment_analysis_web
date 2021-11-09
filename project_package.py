@@ -80,7 +80,7 @@ class ProjectVariables:
 
         #get the year in the header
         for headers_ in table.findAll('tr')[:1]:
-            for header_ in headers_.findAll('td')[1:]:
+            for header_ in headers_.findAll('th')[1:]:
                     years_ += header_
 
         for holidays_ in table.findAll('tr')[1:]:

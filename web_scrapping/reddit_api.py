@@ -49,7 +49,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 class RedditApi_():
     """Class to webscrap data on Reddit using Selenium and then, analyze the comments (sentiment analysis).
     Things to know :
-    - It's made for an analysis on a daily basis (by default, but can be changed it we modify `self.time_ago`
+    - It's made for an analysis on a daily basis (by default, but can be changed it we modify `self._time_ago`
     - From Tuesday to Friday, we try to get the last 24 hours of comments
     - On Monday, we get the comments posted during the weekend
     """
@@ -69,9 +69,12 @@ class RedditApi_():
         `self.reddit_columns` : list
             type of values we want to store from webscrapping reddit
             (possibilities : https://praw.readthedocs.io/en/latest/code_overview/models/comment.html#praw.models.Comment)
-        `self.time_ago` : int
+        `self._time_ago` : int
             Number of hours in the past we want to webscrape the data. This value must be 1 hour or more as the time
-            format in Reddit is in hours (under 24 hours) and days (24 hours or more after the post was created)
+            format in Reddit is in hours (under 24 hours) and days (24 hours or more after the post was created).
+            By default, the value is 24, and should not be changed. The program is made to sear`ch the last 24 hours and
+            it operates this way. Ex: the function `self.set_time_ago()` changes `self._time_ago` depending if we are on
+            Monday or on a US Stock holiday and will fetch accordingly.
         self.sort_comments_method : str
             how we sort comments in a submission (see this link and section 'property comments' :
             https://praw.readthedocs.io/en/latest/code_overview/models/submission.html)
@@ -100,7 +103,7 @@ class RedditApi_():
         `self.class_submission_time` : str
             class to get the time a submission was published
         `self.buffer_time_size` : int
-            buffer (number) to fetch the dates we want. Ex :  If the buffer is 3, and `self.time_ago` is 5 hours,
+            buffer (number) to fetch the dates we want. Ex :  If the buffer is 3, and `self._time_ago` is 5 hours,
             it will also stop fetching the data if it sees 6 hours or 7 hours in the post and set the value
             `self.date__` accordingly
         `self.date__` : str
@@ -118,12 +121,12 @@ class RedditApi_():
         """
 
         self.stock_keywords = ['TSLA', 'Tesla']
-        self.time_ago = 72
+        self._time_ago = 24
         self.sort_comments_method = "new"
         self.date_ = ""
 
-        #RENDU ICI
         self.us_holiday = pv.us_holidays #list of US Stock Holiday in Datetime
+        self.us_holiday += date.today()
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
@@ -165,7 +168,6 @@ class RedditApi_():
         self.webscrap_content()
         self.analyse_content()
 
-        self.convert_time()
         self.rejected_replies()
 
     def init_driver(self):
@@ -184,6 +186,22 @@ class RedditApi_():
         profile = webdriver.FirefoxProfile()
         profile.set_preference('intl.accept_languages', 'en-US, en')
         self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
+
+    def set_time_ago(self):
+        """Modifiy `self._time_ago` depending if the current day is Monday (so that previous days are the weekend)
+        anr/or if the current day is a US Stock Holiday"""
+        
+        #check if it Monday
+        if date.today().weekday() == 0:
+            self._time_ago += 48 #add 48 hours because of Saturday and Sunday
+
+        #check if current day is a holiday
+        if date.today() in self.us_holiday:
+            if date.today().weekday() == 1:
+                self._time_ago += 48
+            else :
+                self._time_ago += 24
+
 
     def get_posts(self):
         """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is
@@ -209,31 +227,13 @@ class RedditApi_():
         url_ = self.list_reddit_posts[0].get_attribute("href")
         d = 5
 
-
-    def convert_time(self):
-        """Method to convert time readable in the Xpath in Selenium.
-
-        Publication format in Reddit.
-        if `self.time_ago` < 24 && > 1, publication date format in Reddit is hour (ex: a post published 5 hours ago will
-            have a creation date of `5h` ago)
-        if `self.time_ago` >= 24, publication date format in Reddit is day (ex: ex: a post published 28 hours ago will
-            have a creation date of `1d` ago)
-        """
-
-        if self.time_ago < 24:
-            str_tempo = str(self.time_ago)
-            self.date_ = ''.join([str_tempo, 'h'])
-        else:
-            str_tempo = str(self.time_ago // 24)
-            self.date_ = ''.join([str_tempo, 'd'])
-
     def time_to_search(self):
-        """Method that set the variable `self.date__` depending on  how far we need data `self.time_ago`.
-        It will only fetch in the posts that time published (of post) >= `self.time_ago`
+        """Method that set the variable `self.date__` depending on  how far we need data `self._time_ago`.
+        It will only fetch in the posts that time published (of post) >= `self._time_ago`
          """
 
         writing_minutes = True
-        i =1
+        i = 1
 
         #writing time for minutes
         while True:
@@ -250,7 +250,7 @@ class RedditApi_():
         i = 1
         j = 1
         #writing time for hours and days
-        while (i- 1)  < self.time_ago:
+        while (i- 1)  < self._time_ago:
 
             str_tempo = str(i)
             #write time in hours
@@ -374,39 +374,7 @@ class RedditApi_():
                     button_click.click()
 
                 except:
-                    print(f"WARNING : end of pages. Either `self.time_ago` {self.time_ago} is too large, either "
-                          f"`self.scroll_pause_time` {self.scroll_pause_time} is too small or either the submissions"
-                          f" is too 'young'")
                     break
-
-            # get the time the submission what created
-            try:
-                creation_time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class = '{}' and "
-                                                "@data-click-id = 'timestamp']".format(self.class_submission_time))))
-
-
-            except:
-                raise Exception(f"Not able to find the time the submission was published. Maybe a problem with waiting"
-                                f"value {self.scroll_pause_time} or with the class to get the time the submission was "
-                                f"created {self.class_submission_time}")
-
-            # element exists
-            if creation_time_element:
-                is_older = self.compare_time(creation_time_element)
-
-            # try to find posts that were published `self.time_ago` only if the submission was created before that.
-            # Otherwise, searching for the element is time consuming (and slow down the process a lot).
-            if is_older:
-
-                # Trying to find the elements (@class `self.class_time` and the date `self.date_`.).
-                # We skip the stickied comment and search for `@id` 'CommentTopMeta' contained in comments
-                try:
-
-                    element = wait.until(EC.presence_of_element_located((By.XPATH, date_searching)))
-                    break
-
-                except TimeoutException:
-                    pass
 
             # Check if there is a button 'MoreComments' and click on it to load more comments
             try:
@@ -416,25 +384,3 @@ class RedditApi_():
 
             except:
                 pass
-
-    def compare_time(self, element):
-        """ Method that return True if the submission was published before `self.time_ago` and False otherwise
-
-        Ex : the submission was created '2 days ago', and we are looking for posts that were published 1 day ago, then
-        it returns True"""
-
-        time_format = element.text.split(' ')[1]
-        # check if it is 'day ago' or 'hours ago' to get 'hours ago' at the end
-        time_number = int(element.text.split(' ')[0])
-
-        if (time_format == 'day' or time_format == 'days'):
-            if ((24 * time_number) >= self.time_ago):
-                return True
-            else:
-                return False
-
-        else:
-            if time_number >= self.time_ago:
-                return True
-            else:
-                return False
