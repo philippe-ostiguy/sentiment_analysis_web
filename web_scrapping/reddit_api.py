@@ -125,7 +125,6 @@ class RedditApi_():
         self.date_ = ""
 
         self.us_holiday = pv.us_holidays #list of US Stock Holiday in Datetime
-        self.us_holiday.append(datetime.today())
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
@@ -139,7 +138,8 @@ class RedditApi_():
         self.weekend_discussion_url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair_name' \
                                       '%3A%22Weekend%20Discussion%22&restrict_sr=1&sr_nsfw=&sort=new'
         self.class_post ='_3jOxDPIQ0KaOWpzvSQo-1s'
-
+        self.check_weekend = False  # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
+                                    #False per default.
 
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU'  # time
         self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR'  # class time with more details
@@ -190,23 +190,29 @@ class RedditApi_():
     def set_time_ago(self):
         """Modifiy `self._time_ago` depending if the current day is Monday (so that previous days are the weekend)
         anr/or if the current day is a US Stock Holiday"""
-        
-        #check if it Monday
+
+        today = date.today() -timedelta(days=1)
+        self._time_ago +=24
+
+        yesterday = today - timedelta(days=1)
+
+        #check if it Monday today
         if date.today().weekday() == 0:
             self._time_ago += 48 #add 48 hours because of Saturday and Sunday
+            self.check_weekend =True #fetching data on the 'weekend discussion' in wallstreetbet
 
-        #check if current day is a holiday
-        if ((datetime.now().month in [date_.month for date_ in self.us_holiday]) and
-            (datetime.now().year in [date_.year for date_ in self.us_holiday]) and
-            (datetime.now().day in [date_.day for date_ in self.us_holiday])):
+        #check if yesterday was a holiday
+        if ((yesterday.month in [date_.month for date_ in self.us_holiday]) and
+            (yesterday.year in [date_.year for date_ in self.us_holiday]) and
+            (yesterday.day in [date_.day for date_ in self.us_holiday])):
 
-            #if current days is Tuesday,
+            #if current days is Tuesday, then 2 days before was the weekend
             if date.today().weekday() == 1:
-                self._time_ago += 72
+                self._time_ago += 48
+                self.check_weekend = True # fetching data on the 'weekend discussion' in wallstreetbet
+
             else :
                 self._time_ago += 24
-
-        t = 5
 
     def get_posts(self):
         """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is
@@ -223,9 +229,14 @@ class RedditApi_():
         #This if for the posts that we webscrap data from Tuesday to Friday
         self.driver.get(self.daily_discussion_url)
         time.sleep(2)
-
         element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
         self.list_reddit_posts += self.driver.find_elements_by_xpath(element_to_search)
+
+        if self.check_weekend:
+            self.driver.get(self.weekend_discussion_url)
+            time.sleep(2)
+            element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post, self.date__)
+            self.list_reddit_posts += self.driver.find_elements_by_xpath(element_to_search)
 
         t = self.list_reddit_posts[0].text
         d = self.list_reddit_posts[1].text

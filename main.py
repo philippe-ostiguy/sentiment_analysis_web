@@ -68,8 +68,6 @@ class InitMain(InitNewsHeadline,InitStockTwit):
         if (datetime.today().weekday()  >= 5):
             raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
-        raise Exception("Current day is the weekend. The market is closed. The program will shut down")
-
 if __name__ == '__main__':
     init = InitMain()
     init()
