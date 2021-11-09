@@ -34,9 +34,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from initialize import InitNewsHeadline, InitStockTwit
 from project_package import ProjectVariables
+from datetime import datetime, timedelta, time, date
 
 class InitMain(InitNewsHeadline,InitStockTwit):
-    """Class that initializes global value for the project. It also use general method to initialize value.
+    """Class that initializes global value for the project and performs some checks and stops the program if necessary
      """
 
     def __init__(self):
@@ -49,18 +50,40 @@ class InitMain(InitNewsHeadline,InitStockTwit):
         #initialize value here
         self.pd_data = pd.DataFrame()
 
-        #initialize the project variables
-        pv = ProjectVariables()
-        pv()
-        ra_ = ws.RedditApi_(pv)
-        ra_() #call the built-on method 'call'
-        sta_ = ws.StockTwitsApi()
-        sta_()
-        ba = sa.TwitAnalysis(sta_.stock_twit)
-        ba()
+    def __call__(self):
+        # initialize the project variables
+        self.pv = ProjectVariables()
+        self.pv()
+
+    def check_closed_days(self):
+        """ Function that checks if the current days is weekend or a US Stock holiday"""
+
+        us_holiday = self.pv.us_holidays
+        #check if current day is a holiday
+        if ((datetime.now().month in [date_.month for date_ in us_holiday]) and
+            (datetime.now().year in [date_.year for date_ in us_holiday]) and
+            (datetime.now().day in [date_.day for date_ in us_holiday])):
+            raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
+
+        if (datetime.today().weekday()  >= 5):
+            raise Exception("Current day is the weekend. The market is closed. The program will shut down")
+
+        raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
     init = InitMain()
+    init()
+    init.check_closed_days()
+
+    #fetching the data on social media and twitter
+    ra_ = ws.RedditApi_(init.pv)
+    ra_()  # call the built-on method 'call'
+    sta_ = ws.StockTwitsApi()
+    sta_()
+    ba = sa.TwitAnalysis(sta_.stock_twit)
+    ba()
+
+
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
 
     #if we want to perform a news headline web_scraping using FinnHub

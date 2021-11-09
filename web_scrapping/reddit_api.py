@@ -29,7 +29,6 @@
 
 from datetime import datetime, timedelta, time, date
 import time
-
 import pandas as pd
 import os
 import web_scrapping.package_methods as pm
@@ -126,7 +125,7 @@ class RedditApi_():
         self.date_ = ""
 
         self.us_holiday = pv.us_holidays #list of US Stock Holiday in Datetime
-        self.us_holiday += date.today()
+        self.us_holiday.append(datetime.today())
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
@@ -162,6 +161,7 @@ class RedditApi_():
 
     def __call__(self):
 
+        self.set_time_ago()
         self.time_to_search()
         self.init_driver()
         self.get_posts()
@@ -196,12 +196,17 @@ class RedditApi_():
             self._time_ago += 48 #add 48 hours because of Saturday and Sunday
 
         #check if current day is a holiday
-        if date.today() in self.us_holiday:
+        if ((datetime.now().month in [date_.month for date_ in self.us_holiday]) and
+            (datetime.now().year in [date_.year for date_ in self.us_holiday]) and
+            (datetime.now().day in [date_.day for date_ in self.us_holiday])):
+
+            #if current days is Tuesday,
             if date.today().weekday() == 1:
-                self._time_ago += 48
+                self._time_ago += 72
             else :
                 self._time_ago += 24
 
+        t = 5
 
     def get_posts(self):
         """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is

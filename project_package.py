@@ -87,10 +87,9 @@ class ProjectVariables:
 
             i = 0
             for holiday_ in holidays_.findAll('td'):
-                if holiday_.text == "—":
+                if "—" in holiday_.text :
                     i+=1
                     continue
-                print (holiday_.text)
 
                 month_ = holiday_.text.split(' ')[1]
                 day_ = re.sub("[^0-9]", "", holiday_.text.split(' ')[2])
