@@ -58,8 +58,13 @@ class RedditApi_():
         Attributes
         ----------
 
-        `self.stock_keywards` : str
-            keywords for the stock that we want to webscrap data
+        `self.stock_dictionary` : dict
+            name of the stock we want to analyse the data with the keywords associated with that stock.
+            Ex : { Tesla : ['TSLA', 'tesla'] }. The stock we are seaching data for is 'Tesla'. The first value for each
+            stock (key) is the ticker which should be in capital letter only. Ex: Keyword is 'TSLA' we will only search
+            for 'TSLA' (searching is case-sensitive).
+            The second keywords and more can be either capital letter or not. We search for both here.
+            Ex : keyword is 'Tesla', we will also search for 'tesla'.
         `self.limit_comments` : int
             maximum number of comments to fetch (default is 100. In general, max number allowed is 1000 :
             https://praw.readthedocs.io/en/latest/code_overview/other/listinggenerator.html#praw.models.ListingGenerator)
@@ -119,7 +124,7 @@ class RedditApi_():
 
         """
 
-        self.stock_keywords = ['TSLA', 'Tesla']
+        self.stock_dictionnary = {'Tesla':['TSLA', 'Tesla','tesla']}
         self._time_ago = 24
         self.sort_comments_method = "new"
         self.date_ = ""
@@ -300,18 +305,14 @@ class RedditApi_():
             i += 1
 
     def webscrap_content(self):
-        """Method to web-scrap content on Reddit using Selenium
-        """
-
+        """Method to web-scrap content on Reddit using Selenium"""
 
         for url_post in self.reddit_posts_url[0]:
-
             self.driver.get(url_post)
             time.sleep(2)
             self.scroll_to_value()
             self.reddit_comments += [comment.text for comment in self.driver.find_elements_by_xpath(
                 "//div[contains(@class,'{}')]".format(self.class_comments))]
-
 
     def analyse_content(self):
         """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
@@ -320,7 +321,7 @@ class RedditApi_():
         reddit_dictionary = {}  # dictionary with information from twits
         i = 0
 
-        for reddit in self.reddit_comments:
+        for comment in self.reddit_comments:
             # skip the stickied comment
             if i == 0:
                 i += 1
@@ -328,8 +329,9 @@ class RedditApi_():
             i += 1
 
             # check if the post contains the stock (keywords) we are looking for
-            for keyword in self.stock_keywords:
-                if keyword in reddit.text:
+            for stock,keywords in self.stock_dictionnary:
+                if comment in keywords :
+
                     break  # not analyzing the same post twic (in case we have more than 1 keyword)
 
             # remove all unescessary text (emoji, \n, other symbol like $)
@@ -383,5 +385,5 @@ class RedditApi_():
             except:
                 pass
 
-            if i ==10:
+            if i ==1:
                 break

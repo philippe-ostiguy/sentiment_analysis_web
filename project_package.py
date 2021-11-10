@@ -30,6 +30,7 @@ import requests
 import bs4 as bs
 from datetime import datetime
 import re
+import pandas as pd
 
 def get_tickers():
     """Method that gets the stock symbols from companies listed in the S&P 500
@@ -51,15 +52,21 @@ def get_tickers():
     return tickers
 
 class ProjectVariables:
-    """Variables that are used across the project. We want to initialize them only once"""
-
+    """Variables that are used across the project. We want to initialize them only once. It's not variables (attributes)
+    that we choose the value like in module `initialize.py`. They are either only initialised or calculated"""
 
     def __init__(self):
         """
         `self.us_holidays` : list
             list of datetime object when the us stock market is closed (NYSE)
+        `self.pd_sentiment` : pd DataFrame
+            pandas DataFrame that contains the sentiment analysis from social media per stock.
+            Ex : On Tesla, it will contain the sentiment mood (positive or negative, sentiment probability)
+             from Twitter, Stocktwits, Reddit,
+
         """
         self.us_holidays = []
+        self.pd_sentiment = pd.DataFrame
 
     def __call__(self):
 

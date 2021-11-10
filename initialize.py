@@ -23,7 +23,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ###############################################################################
-""" This is the module to initialize variables used across the project
+""" This is the module to initialize and set the values of variables used across the project
 
 """
 import os
@@ -31,6 +31,10 @@ from pathlib import Path
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
+
+class InitProject():
+    """Class in which we decide the values of the variables (attribute) for the entire project"""
+    pass
 
 class InitNewsHeadline():
     """Class that initializes global value for the module for sentiment analysis of news headline.
