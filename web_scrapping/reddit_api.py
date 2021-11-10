@@ -146,8 +146,8 @@ class RedditApi_():
         self.class_more_comments = '_3sf33-9rVAO_v4y0pIW_CH'
         self.class_comments = '_3cjCphgls6DH-irkVaA0GM'  # post
         self.class_submission_time = '_3jOxDPIQ0KaOWpzvSQo-1s'
-        self.list_reddit_posts = [] #list of posts we will webscrap data from on Reddit
-        self.reddit_comments= [] #list that contains the comments
+        self.reddit_posts_url = [] #list of url posts we will webscrap data from on Reddit
+        self.reddit_comments= [] #list that contains the comments (text only)
 
         self.min_replies = 100
         self.min_reply_list = []  # associated list with the `self.min_replies` attribute
@@ -160,15 +160,16 @@ class RedditApi_():
         self.number_of_submissions = 5
 
     def __call__(self):
+        """Performs all the method necessary to webscrap the content on reddit's posts and analyse the mood of the
+        comments"""
 
         self.set_time_ago()
         self.time_to_search()
         self.init_driver()
         self.get_posts()
+        self.rejected_replies()
         self.webscrap_content()
         self.analyse_content()
-
-        self.rejected_replies()
 
     def init_driver(self):
 
@@ -191,9 +192,7 @@ class RedditApi_():
         """Modifiy `self._time_ago` depending if the current day is Monday (so that previous days are the weekend)
         anr/or if the current day is a US Stock Holiday"""
 
-        today = date.today() -timedelta(days=1)
-        self._time_ago +=24
-
+        today = date.today()
         yesterday = today - timedelta(days=1)
 
         #check if it Monday today
@@ -230,18 +229,16 @@ class RedditApi_():
         self.driver.get(self.daily_discussion_url)
         time.sleep(2)
         element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
-        self.list_reddit_posts += self.driver.find_elements_by_xpath(element_to_search)
+        #posts url
+        self.reddit_posts_url += [post.get_attribute("href") for post in
+                                   self.driver.find_elements_by_xpath(element_to_search)]
 
         if self.check_weekend:
             self.driver.get(self.weekend_discussion_url)
             time.sleep(2)
             element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post, self.date__)
-            self.list_reddit_posts += self.driver.find_elements_by_xpath(element_to_search)
-
-        t = self.list_reddit_posts[0].text
-        d = self.list_reddit_posts[1].text
-        url_ = self.list_reddit_posts[0].get_attribute("href")
-        d = 5
+            self.reddit_posts_url += [post.get_attribute("href") for post in
+                                       self.driver.find_elements_by_xpath(element_to_search)]
 
     def time_to_search(self):
         """Method that set the variable `self.date__` depending on  how far we need data `self._time_ago`.
@@ -267,7 +264,6 @@ class RedditApi_():
         j = 1
         #writing time for hours and days
         while (i- 1)  < self._time_ago:
-
             str_tempo = str(i)
             #write time in hours
             if i == 1:
@@ -307,17 +303,15 @@ class RedditApi_():
         """Method to web-scrap content on Reddit using Selenium
         """
 
-        self.tempo_endpoint = \
-        'https://www.reddit.com/r/wallstreetbets/comments/qnjay6/weekend_discussion_thread_for_the_weekend_of/?sort=new'
-        self.driver.get(self.tempo_endpoint)
-        time.sleep(2)
 
-        start_time = time.time()
-        self.scroll_to_value(self.driver)
-        end_time = time.time()
-        difference = end_time - start_time
-        self.reddit_comments = self.driver.find_elements_by_xpath(
-            "//div[contains(@class,'{}')]".format(self.class_comments))
+        for url_post in self.reddit_posts_url[0]:
+
+            self.driver.get(url_post)
+            time.sleep(2)
+            self.scroll_to_value()
+            self.reddit_comments += [comment.text for comment in self.driver.find_elements_by_xpath(
+                "//div[contains(@class,'{}')]".format(self.class_comments))]
+
 
     def analyse_content(self):
         """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
@@ -345,19 +339,14 @@ class RedditApi_():
 
             self.reddit_result = self.reddit_result.append(reddit_dictionary, ignore_index=True)
 
-        t = 5
 
     def scroll_to_value(self):
-        """ method that scroll the page until the value(s) is (are) found in DOM (@class `self.class_time`
-        and the date `self.date_`).
-
+        """ method that scroll to the end of the page to load all first-level comments on a post.
          - We use the method `wait` as the page may load at different time intervals :
          https://selenium-python.readthedocs.io/waits.html
-         - If the date is found, we have to make sure that it's found in the class `self.class_time`
-        (ex : if we search  for '2d' to get the previous 2 days data, if in a post there is '2d' in the text (text()),
-        then it will stop searching for the date)
          - If there is a button 'MoreComments', we click on it to load more comments :
         https://praw.readthedocs.io/en/stable/code_overview/models/more.html#praw.models.MoreComments
+        - We don't fetch second-level comments (comments under first-level comment) as it will take to much time)
         """
 
         wait = WebDriverWait(self.driver, self.scroll_pause_time)
@@ -367,20 +356,14 @@ class RedditApi_():
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
 
-        date_searching = '//span[@class = "{}" and ./a[contains(@id, "CommentTopMeta")] and ({}) and not ' \
-                         '(./span/text() = "Stickied comment")]'.format(self.class_time_whole, self.date__)
-
-        is_clicking = False  # not clicking on a button by default
-
         while not element:
 
             # go to section in window according to `i` and `screen_height`
-            self.driver.execute_script("window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+            self.driver.execute_script("window.scrollTo(0, {screen_height}*{i});"
+                                       .format(screen_height=screen_height, i=i))
             # return DOM body height
             scroll_height = self.driver.execute_script("return document.body.scrollHeight;")
-
             i += 1
-            is_clicking = False
 
             # check if we are a the end of the page
             if (screen_height) * i > scroll_height:
@@ -396,7 +379,9 @@ class RedditApi_():
             try:
                 button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
                 button_click.click()
-                is_clicking = True
 
             except:
                 pass
+
+            if i ==10:
+                break
