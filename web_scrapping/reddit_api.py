@@ -53,12 +53,15 @@ class RedditApi_():
     - On Monday, we get the comments posted during the weekend
     """
 
-    def __init__(self,init):
+    def __init__(self,init,init_sentiment):
         """
         Parameter
         ----------
         `init` : cls
             class from the module `initialize.py` that initializes global variables for the project
+        `init_sentiment` : cls
+            class from the module `twits_analysis` with the Twitter Roberta based transformer model already initialized
+            and ready to perform sentiment analysis
 
         Attributes
         ----------
@@ -125,9 +128,10 @@ class RedditApi_():
 
         self.stock_dictionnary = {'Tesla':['TSLA', 'Tesla','tesla']}
         self.date_ = ""
-        self.init = init
-        self.us_holidays = self.init.us_holidays #list of US Stock Holiday
-        self.time_ago = self.init.time_ago
+        self.pv = init #giving the values of class `init` to `self.pv` variable (pv for project variables)
+        self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
+        self.us_holidays = self.pv.us_holidays #list of US Stock Holiday
+        self.time_ago = self.pv.time_ago
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
@@ -337,11 +341,12 @@ class RedditApi_():
                 if any(keyword in comment for keyword in keywords):
                     # remove all unescessary text (transform emoji, remove \n, remove other symbol like $)
                     tempo_comment = pm.text_cleanup(comment)
-                    reddit_dictionary[self.init.columns_sentiment[0]] = tempo_comment
-                    self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append\
+                    reddit_dictionary[self.pv.columns_sentiment[0]] = tempo_comment
+                    reddit_dictionary[self.pv.columns_sentiment[1]] = self.roberta.roberta_analysis(tempo_comment)
+                    self.pv.pd_stock_sentiment = self.pv.pd_stock_sentiment.append\
                         (reddit_dictionary, ignore_index=True)
                     break  # not analyzing the same post twice (in case we have more than 1 keyword)
-        return self.init.pd_stock_sentiment
+        return self.pv.pd_stock_sentiment
 
     @loop_reddit_post
     def scroll_to_end(self):

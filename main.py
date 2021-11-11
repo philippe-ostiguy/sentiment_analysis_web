@@ -32,7 +32,7 @@ import sentiment_analysis as sa
 import web_scrapping as ws
 import matplotlib.pyplot as plt
 import pandas as pd
-from initialize import InitProject,InitNewsHeadline, InitStockTwit
+from initialize import InitProject
 from datetime import datetime, timedelta, time, date
 
 class InitMain(InitProject):
@@ -70,14 +70,19 @@ class InitMain(InitProject):
             raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
-    init = InitMain()
-    init()
+    init_main = InitMain()
+    init_main()
+
+    #initialize the Roberta sentiment analysis
+    #init_roberta = sa.TwitAnalysis(init_main)
+    #init_roberta() #built-in call method to initialize the model
 
     # fetching the data on social media and twitter
-    ra_ = ws.RedditApi_(init)
-    init.pd_stock_sentiment= ra_() # return the comments
+    #ra_ = ws.RedditApi_(init_main,init_roberta)
+    #init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
+    # Transformer
 
-    sta_ = ws.StockTwitsApi()
+    sta_ = ws.StockTwitsApi(init_main)
     sta_()
     ba = sa.TwitAnalysis(sta_.stock_twit)
     ba()
@@ -85,48 +90,21 @@ if __name__ == '__main__':
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
 
-    #if we want to perform a news headline web_scraping using FinnHub
-    if init.web_scraping:
-        ta_ = ws.TwitterApi_()
-        ta_() #call the built-on method 'call'
-        #fh_ = ws.FinnHub()
+    """
+    Code for sentiment analysis using VaderAnalysis
+    
+    #built-in method `__call__` in `VaderAnalysis()` class
+    init.pd_data = va(ticker_db=ticker_db,hist_price=init.pd_data)
 
-    # if we want to perform a news headline web_scraping using FinnHub
-    if init.sentiment_analysis:
+    #Plotting the daily return against the sentiment score
+    init.pd_data.plot(x =sentiment_name,y=daily_return,style = "o")
 
+    #correlation between sentiment score and daily return
+    print(init.pd_data[daily_return].corr(init.pd_data[sentiment_name]))
 
-        hr = ws.HistoricalReturn()
-        daily_return = hr.daily_return
-        #va = sa.VaderAnalysis()
-        #sentiment_name=va.sentiment_name
-        t = 5
-
-    for ticker in init.tickers:
-        ticker_db = ticker + '_'
-
-        if init.web_scraping:
-            #fh_(ticker, ticker_db)
-            pass
-
-        if init.sentiment_analysis:
-            init.pd_data = hr(ticker=ticker)
-
-
-            """
-            Code for sentiment analysis using VaderAnalysis
-            
-            #built-in method `__call__` in `VaderAnalysis()` class
-            init.pd_data = va(ticker_db=ticker_db,hist_price=init.pd_data)
-
-            #Plotting the daily return against the sentiment score
-            init.pd_data.plot(x =sentiment_name,y=daily_return,style = "o")
-
-            #correlation between sentiment score and daily return
-            print(init.pd_data[daily_return].corr(init.pd_data[sentiment_name]))
-
-            #frequency histogram for the sentiment score
-            plt.rcParams.update({'figure.figsize': (7, 5), 'figure.dpi': 100})
-            x= init.pd_data[sentiment_name]
-            plt.hist(x, bins=50)
-            plt.gca().set(title='Frequency Histogram', ylabel='Frequency');
-            """
+    #frequency histogram for the sentiment score
+    plt.rcParams.update({'figure.figsize': (7, 5), 'figure.dpi': 100})
+    x= init.pd_data[sentiment_name]
+    plt.hist(x, bins=50)
+    plt.gca().set(title='Frequency Histogram', ylabel='Frequency');
+    """

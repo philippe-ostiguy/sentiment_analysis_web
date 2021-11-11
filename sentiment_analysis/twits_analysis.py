@@ -61,7 +61,6 @@ class TwitAnalysis():
          #   it's the pandas.DataFrame `self.pd_stock_sentiment` but in dictionary to loop faster
 
 
-
         self.sentiment_analyser = pipeline("sentiment-analysis")
         self.init = init #class that initialises global variables for the project (and in the darkness bind them...
                         #well, not really)
@@ -77,7 +76,7 @@ class TwitAnalysis():
         task = 'sentiment'
         MODEL = f"cardiffnlp/twitter-roberta-base-{task}"
 
-        tokenizer = AutoTokenizer.from_pretrained(MODEL)
+        self.tokenizer = AutoTokenizer.from_pretrained(MODEL)
 
         # download label mapping
         self.labels = []
@@ -116,12 +115,11 @@ class TwitAnalysis():
         ----------
         `twit` : pandas.DataFrame
             twit/reddit comment that contains the comment itself
-
         """
 
         # extract sentiment prediction if there is a text in the stocktwit
-        if (twit[self.init.columns_sentiment[0]] != "") and (twit[self.init.columns_sentiment[0]]):
-            encoded_input = self.tokenizer(twit[self.init.columns_sentiment[0]], return_tensors='pt')
+        if (twit!= "") and (twit):
+            encoded_input = self.tokenizer(twit, return_tensors='pt')
             output = self.model(**encoded_input)
             scores = output[0][0].detach().numpy()
             scores = softmax(scores)
@@ -133,15 +131,12 @@ class TwitAnalysis():
 
             score =0
             for i in range(scores.shape[0]):
-                label = labels[ranking[i]]
+                label = self.labels[ranking[i]]
                 if label == 'positive' :
                     score += scores[ranking[i]]
                 if label == 'negative':
                     score -=scores[ranking[i]]
-
-            self.probabilities.append(score)
-
-
+        return score
 
     """
     To test to make sure it works

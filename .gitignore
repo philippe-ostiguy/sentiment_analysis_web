@@ -9,3 +9,6 @@ LICENSE
 /web_scrapping/chromedriver
 README.md
 /geckodriver.log
+/web_scrapping/reddit_api_old.py
+/web_scrapping/stocktwits_api_old.py
+/sentiment_analysis/twits_analysis_old.py
