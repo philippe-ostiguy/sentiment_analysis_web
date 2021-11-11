@@ -78,6 +78,8 @@ class InitProject():
             List that contains the US Stock Holiday
         `self.pd_stock_sentiment` : pandas.DataFrame
             Pandas DataFrame that contains the sentiment/mood for each stock we are webscrapping on social media
+        `self.pv.stock_dictionnary` : dict
+            dictionary of stocks (keys) with keywords associated with them (values) that we are looking in the post
 
         """
 
@@ -87,6 +89,8 @@ class InitProject():
 
         # list of variables that we should not set ourself
         self.us_holidays = []
+        self.stock_dictionnary = {'Tsla': ['TSLA', 'Tesla', 'tesla']} #this will be changed later and set
+                                                                            #automatically
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
 
     def __call__(self):

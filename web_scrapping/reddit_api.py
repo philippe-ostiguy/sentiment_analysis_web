@@ -126,12 +126,13 @@ class RedditApi_():
 
         super().__init__()
 
-        self.stock_dictionnary = {'Tesla':['TSLA', 'Tesla','tesla']}
+
         self.date_ = ""
         self.pv = init #giving the values of class `init` to `self.pv` variable (pv for project variables)
         self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
         self.us_holidays = self.pv.us_holidays #list of US Stock Holiday
         self.time_ago = self.pv.time_ago
+        self.stock_dictionnary = self.pv.stock_dictionnary
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
@@ -325,7 +326,6 @@ class RedditApi_():
                 func(self)
                 self.reddit_comments += [comment.text for comment in self.driver.find_elements_by_xpath(
                     "//div[contains(@class,'{}')]".format(self.class_comments))]
-                break
         return wrapper_
 
     def analyse_content(self):
@@ -390,6 +390,6 @@ class RedditApi_():
 
             except:
                 pass
-            break
+
             i+=1
 
