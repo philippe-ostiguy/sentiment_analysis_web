@@ -46,18 +46,22 @@ from webdriver_manager.firefox import GeckoDriverManager
 
 
 class RedditApi_():
-    """Class to webscrap data on Reddit using Selenium and then, analyze the comments (sentiment analysis).
+    """Class to webscrap data on Reddit using Selenium. It stores it in a pandas dataFrame.
     Things to know :
-    - It's made for an analysis on a daily basis (by default, but can be changed it we modify `self._time_ago`
+    - It's made for an analysis on a daily basis (by default, but can be changed it we modify `self.time_ago`
     - From Tuesday to Friday, we try to get the last 24 hours of comments
     - On Monday, we get the comments posted during the weekend
     """
 
-    def __init__(self,pv):
+    def __init__(self,init):
         """
+        Parameter
+        ----------
+        `init` : cls
+            class from the module `initialize.py` that initializes global variables for the project
+
         Attributes
         ----------
-
         `self.stock_dictionary` : dict
             name of the stock we want to analyse the data with the keywords associated with that stock.
             Ex : { Tesla : ['TSLA', 'tesla'] }. The stock we are seaching data for is 'Tesla'. The first value for each
@@ -68,20 +72,14 @@ class RedditApi_():
         `self.limit_comments` : int
             maximum number of comments to fetch (default is 100. In general, max number allowed is 1000 :
             https://praw.readthedocs.io/en/latest/code_overview/other/listinggenerator.html#praw.models.ListingGenerator)
-        `self.reddit_result` : pandas.DataFrame
-            results from wbescrapping reddit (comment, time published, score)
-        `self.reddit_columns` : list
-            type of values we want to store from webscrapping reddit
-            (possibilities : https://praw.readthedocs.io/en/latest/code_overview/models/comment.html#praw.models.Comment)
-        `self._time_ago` : int
+        `self.time_ago` : int
             Number of hours in the past we want to webscrape the data. This value must be 1 hour or more as the time
             format in Reddit is in hours (under 24 hours) and days (24 hours or more after the post was created).
-            By default, the value is 24, and should not be changed. The program is made to sear`ch the last 24 hours and
-            it operates this way. Ex: the function `self.set_time_ago()` changes `self._time_ago` depending if we are on
+            By default, the value is 24, and should not be changed. If it is changed, the funciton `self.set_time_ago()`
+            should be reviewed.
+            The program is made to search the last 24 hours and
+            it operates this way. Ex: the function `self.set_time_ago()` changes `self.time_ago` depending if we are on
             Monday or on a US Stock holiday and will fetch accordingly.
-        self.sort_comments_method : str
-            how we sort comments in a submission (see this link and section 'property comments' :
-            https://praw.readthedocs.io/en/latest/code_overview/models/submission.html)
         `self.api_endpoint` : str
             API's endpoint parameter
         `self.driver_file_name` : str
@@ -107,7 +105,7 @@ class RedditApi_():
         `self.class_submission_time` : str
             class to get the time a submission was published
         `self.buffer_time_size` : int
-            buffer (number) to fetch the dates we want. Ex :  If the buffer is 3, and `self._time_ago` is 5 hours,
+            buffer (number) to fetch the dates we want. Ex :  If the buffer is 3, and `self.time_ago` is 5 hours,
             it will also stop fetching the data if it sees 6 hours or 7 hours in the post and set the value
             `self.date__` accordingly
         `self.date__` : str
@@ -121,15 +119,15 @@ class RedditApi_():
             Selenium from driver to webscrap the data
         `self.class_post` : str
             class in reddit (in DOM) for the post (get URL, and time it was created)
-
         """
 
-        self.stock_dictionnary = {'Tesla':['TSLA', 'Tesla','tesla']}
-        self._time_ago = 24
-        self.sort_comments_method = "new"
-        self.date_ = ""
+        super().__init__()
 
-        self.us_holiday = pv.us_holidays #list of US Stock Holiday in Datetime
+        self.stock_dictionnary = {'Tesla':['TSLA', 'Tesla','tesla']}
+        self.date_ = ""
+        self.init = init
+        self.us_holidays = self.init.us_holidays #list of US Stock Holiday
+        self.time_ago = self.init.time_ago
 
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
@@ -160,10 +158,6 @@ class RedditApi_():
         self.buffer_time_size = 10
         self.date__ = ""
 
-        self.reddit_result = pd.DataFrame()
-        self.reddit_columns = ['comment', 'time_published', 'comment_score']
-        self.number_of_submissions = 5
-
     def __call__(self):
         """Performs all the method necessary to webscrap the content on reddit's posts and analyse the mood of the
         comments"""
@@ -173,8 +167,8 @@ class RedditApi_():
         self.init_driver()
         self.get_posts()
         self.rejected_replies()
-        self.webscrap_content()
-        self.analyse_content()
+        self.scroll_to_end()
+        return self.analyse_content()
 
     def init_driver(self):
 
@@ -194,7 +188,7 @@ class RedditApi_():
         self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
 
     def set_time_ago(self):
-        """Modifiy `self._time_ago` depending if the current day is Monday (so that previous days are the weekend)
+        """Modifiy `self.time_ago` depending if the current day is Monday (so that previous days are the weekend)
         anr/or if the current day is a US Stock Holiday"""
 
         today = date.today()
@@ -202,21 +196,21 @@ class RedditApi_():
 
         #check if it Monday today
         if date.today().weekday() == 0:
-            self._time_ago += 48 #add 48 hours because of Saturday and Sunday
+            self.time_ago += 48 #add 48 hours because of Saturday and Sunday
             self.check_weekend =True #fetching data on the 'weekend discussion' in wallstreetbet
 
         #check if yesterday was a holiday
-        if ((yesterday.month in [date_.month for date_ in self.us_holiday]) and
-            (yesterday.year in [date_.year for date_ in self.us_holiday]) and
-            (yesterday.day in [date_.day for date_ in self.us_holiday])):
+        if ((yesterday.month in [date_.month for date_ in self.us_holidays]) and
+            (yesterday.year in [date_.year for date_ in self.us_holidays]) and
+            (yesterday.day in [date_.day for date_ in self.us_holidays])):
 
             #if current days is Tuesday, then 2 days before was the weekend
             if date.today().weekday() == 1:
-                self._time_ago += 48
+                self.time_ago += 48
                 self.check_weekend = True # fetching data on the 'weekend discussion' in wallstreetbet
 
             else :
-                self._time_ago += 24
+                self.time_ago += 24
 
     def get_posts(self):
         """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is
@@ -246,8 +240,8 @@ class RedditApi_():
                                        self.driver.find_elements_by_xpath(element_to_search)]
 
     def time_to_search(self):
-        """Method that set the variable `self.date__` depending on  how far we need data `self._time_ago`.
-        It will only fetch in the posts that time published (of post) >= `self._time_ago`
+        """Method that set the variable `self.date__` depending on  how far we need data `self.time_ago`.
+        It will only fetch in the posts that time published (of post) >= `self.time_ago`
          """
 
         writing_minutes = True
@@ -268,7 +262,7 @@ class RedditApi_():
         i = 1
         j = 1
         #writing time for hours and days
-        while (i- 1)  < self._time_ago:
+        while (i- 1)  < self.time_ago:
             str_tempo = str(i)
             #write time in hours
             if i == 1:
@@ -303,16 +297,32 @@ class RedditApi_():
                     [' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
 
             i += 1
+    """
+    def loop_reddit_post(self):
+        Method to web-scrap content on Reddit using Selenium
 
-    def webscrap_content(self):
-        """Method to web-scrap content on Reddit using Selenium"""
-
-        for url_post in self.reddit_posts_url[0]:
+        for url_post in self.reddit_posts_url:
             self.driver.get(url_post)
             time.sleep(2)
-            self.scroll_to_value()
+            self.scroll_to_end()
             self.reddit_comments += [comment.text for comment in self.driver.find_elements_by_xpath(
                 "//div[contains(@class,'{}')]".format(self.class_comments))]
+            break
+    """
+
+    def loop_reddit_post(func):
+        """ Decorator that web-scrap content on all reddit posts that we choose using Selenium" """
+
+        def wrapper_(self):
+
+            for url_post in self.reddit_posts_url:
+                self.driver.get(url_post)
+                time.sleep(2)
+                func(self)
+                self.reddit_comments += [comment.text for comment in self.driver.find_elements_by_xpath(
+                    "//div[contains(@class,'{}')]".format(self.class_comments))]
+                break
+        return wrapper_
 
     def analyse_content(self):
         """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
@@ -320,29 +330,21 @@ class RedditApi_():
 
         reddit_dictionary = {}  # dictionary with information from twits
         i = 0
-
         for comment in self.reddit_comments:
-            # skip the stickied comment
-            if i == 0:
-                i += 1
-                continue
-            i += 1
-
             # check if the post contains the stock (keywords) we are looking for
-            for stock,keywords in self.stock_dictionnary:
-                if comment in keywords :
+            for stock,keywords in self.stock_dictionnary.items():
+                #check if the comment contains at least one of the keyword
+                if any(keyword in comment for keyword in keywords):
+                    # remove all unescessary text (transform emoji, remove \n, remove other symbol like $)
+                    tempo_comment = pm.text_cleanup(comment)
+                    reddit_dictionary[self.init.columns_sentiment[0]] = tempo_comment
+                    self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append\
+                        (reddit_dictionary, ignore_index=True)
+                    break  # not analyzing the same post twice (in case we have more than 1 keyword)
+        return self.init.pd_stock_sentiment
 
-                    break  # not analyzing the same post twic (in case we have more than 1 keyword)
-
-            # remove all unescessary text (emoji, \n, other symbol like $)
-            reddit_tempo = pm.text_cleanup(reddit.text)
-
-            reddit_dictionary[self.reddit_columns[0]] = reddit_tempo
-
-            self.reddit_result = self.reddit_result.append(reddit_dictionary, ignore_index=True)
-
-
-    def scroll_to_value(self):
+    @loop_reddit_post
+    def scroll_to_end(self):
         """ method that scroll to the end of the page to load all first-level comments on a post.
          - We use the method `wait` as the page may load at different time intervals :
          https://selenium-python.readthedocs.io/waits.html
@@ -354,9 +356,9 @@ class RedditApi_():
         wait = WebDriverWait(self.driver, self.scroll_pause_time)
         element = None
         screen_height = self.driver.execute_script("return window.screen.height;")  # return window screen height
-        i = 1
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
+        i = 1
 
         while not element:
 
@@ -365,7 +367,6 @@ class RedditApi_():
                                        .format(screen_height=screen_height, i=i))
             # return DOM body height
             scroll_height = self.driver.execute_script("return document.body.scrollHeight;")
-            i += 1
 
             # check if we are a the end of the page
             if (screen_height) * i > scroll_height:
@@ -384,6 +385,6 @@ class RedditApi_():
 
             except:
                 pass
+            break
+            i+=1
 
-            if i ==1:
-                break

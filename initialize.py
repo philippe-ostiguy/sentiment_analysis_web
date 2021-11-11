@@ -30,11 +30,108 @@ import os
 from pathlib import Path
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import re
+import requests
+import bs4 as bs
+import pandas as pd
+
+
+def get_tickers():
+    """Method that gets the stock symbols from companies listed in the S&P 500
+
+    Return
+    ------
+    `tickers` : list
+        S&P 500 company symbols
+    """
+    resp = requests.get('http://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+    soup = bs.BeautifulSoup(resp.text, 'lxml')
+    table = soup.find_all('table')[0]  # Grab the first table
+
+    tickers = []
+    for row in table.findAll('tr')[1:]:
+        ticker = row.findAll('td')[0].text.strip('\n')
+        tickers.append(ticker)
+
+    return tickers
 
 
 class InitProject():
-    """Class in which we decide the values of the variables (attribute) for the entire project"""
-    pass
+    """Class in which we set and/or initialize the values of the variables (attribute) for the entire project"""
+
+    def __init__(self):
+        """Built-in method to set and inialize the global values for the project
+
+        Attributes
+        -----------
+        `self.columns_sentiment` : list
+            list of columns used in the pandas Dataframe (`self.pd_stock_sentiment`) in which
+            we stored the sentiment analysis for each stock.
+            Text is the text in the post, twit. Probability is the probility of the sentiment (-1 to +1. -1 with 100%
+            chance of a negative sentiment and +1 with a 100% of a positive sentiment. Directional is applicable only
+            for Stockwits (user can choose 'bullish' or 'bearish' when creating a twit).
+        `self.time_ago` : int
+            Number of hours in the past we want to webscrape the data.By default, the value is 24, and should not
+            be changed. If it is changed, the funciton `self.set_time_ago()` should be reviewed. See module
+            `reddit_api.py` for more info and search for the variable `self.time_ago`
+        `self.us_holidars` : list
+            List that contains the US Stock Holiday
+        `self.pd_stock_sentiment` : pandas.DataFrame
+            Pandas DataFrame that contains the sentiment/mood for each stock we are webscrapping on social media
+
+        """
+
+        #list of variables we can change ourself
+        self.columns_sentiment = ['text','probability','directional']
+        self.time_ago = 24
+
+        # list of variables that we should not set ourself
+        self.us_holidays = []
+        self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
+
+    def __call__(self):
+
+        # calling the functions
+        self.get_us_holiday()
+
+
+    def get_us_holiday(self):
+        """Get the US Stock holidays """
+
+        resp = requests.get('https://www.nyse.com/markets/hours-calendars')
+        soup = bs.BeautifulSoup(resp.text, 'lxml')
+        # Grab the table with the US Stock holidays (first table)
+        table = soup.find_all('table', {'class': 'table table-layout-fixed'})[0]
+        if table == []:
+            raise Exception("Table to get US stocks holiday in function `get_us_holiday()` does not exist")
+
+        years_ = []
+
+        # get the year in the header
+        for headers_ in table.findAll('tr')[:1]:
+            for header_ in headers_.findAll('th')[1:]:
+                years_ += header_
+
+        for holidays_ in table.findAll('tr')[1:]:
+
+            i = 0
+            for holiday_ in holidays_.findAll('td'):
+                if "—" in holiday_.text:
+                    i += 1
+                    continue
+
+                month_ = holiday_.text.split(' ')[1]
+                day_ = re.sub("[^0-9]", "", holiday_.text.split(' ')[2])
+                year_ = years_[i]
+                date_ = "-".join([year_, month_, day_])
+                self.us_holidays.append(datetime.strptime(date_, '%Y-%B-%d'))
+                i += 1
+
+        if not self.us_holidays :
+            raise Exception(f"List ``self.us_holidays {self.us_holidays} is empty in package `initialize.py`")
+
+
+
 
 class InitNewsHeadline():
     """Class that initializes global value for the module for sentiment analysis of news headline.

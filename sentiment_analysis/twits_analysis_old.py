@@ -24,7 +24,8 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-"""Module to perform sentiment analysis on twits
+"""Module to perform sentiment analysis on twits. This is the old version. It was also calcuting the accuracy
+on Stocktwits
 
 """
 
@@ -45,7 +46,7 @@ import time
 
 
 class TwitAnalysis(InitStockTwit):
-    """Class that performs sentiment analysis (NLP) on stocktwits
+    """Class that performs sentiment analysis (NLP) on 'twit-like' media (stocktwit, reddit, twitter)
 
     """
     def __init__(self,stock_twits):

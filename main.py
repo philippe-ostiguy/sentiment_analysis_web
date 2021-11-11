@@ -32,11 +32,10 @@ import sentiment_analysis as sa
 import web_scrapping as ws
 import matplotlib.pyplot as plt
 import pandas as pd
-from initialize import InitNewsHeadline, InitStockTwit
-from project_package import ProjectVariables
+from initialize import InitProject,InitNewsHeadline, InitStockTwit
 from datetime import datetime, timedelta, time, date
 
-class InitMain(InitNewsHeadline,InitStockTwit):
+class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary
      """
 
@@ -48,21 +47,23 @@ class InitMain(InitNewsHeadline,InitStockTwit):
         super().__init__()
 
         #initialize value here
-        self.pd_data = pd.DataFrame()
+        self.us_holidays = []
 
     def __call__(self):
         # initialize the project variables
-        self.pv = ProjectVariables()
-        self.pv()
+        init = InitProject()
+        init()
+        self.us_holidays = init.us_holidays
+        self.check_closed_days()
+
 
     def check_closed_days(self):
         """ Function that checks if the current days is weekend or a US Stock holiday"""
 
-        us_holiday = self.pv.us_holidays
         #check if current day is a holiday
-        if ((datetime.now().month in [date_.month for date_ in us_holiday]) and
-            (datetime.now().year in [date_.year for date_ in us_holiday]) and
-            (datetime.now().day in [date_.day for date_ in us_holiday])):
+        if ((datetime.now().month in [date_.month for date_ in self.us_holidays]) and
+            (datetime.now().year in [date_.year for date_ in self.us_holidays]) and
+            (datetime.now().day in [date_.day for date_ in self.us_holidays])):
             raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
 
         if (datetime.today().weekday()  >= 5):
@@ -71,11 +72,11 @@ class InitMain(InitNewsHeadline,InitStockTwit):
 if __name__ == '__main__':
     init = InitMain()
     init()
-    init.check_closed_days()
 
-    #fetching the data on social media and twitter
-    ra_ = ws.RedditApi_(init.pv)
-    ra_()  # call the built-on method 'call'
+    # fetching the data on social media and twitter
+    ra_ = ws.RedditApi_(init)
+    init.pd_stock_sentiment= ra_() # return the comments
+
     sta_ = ws.StockTwitsApi()
     sta_()
     ba = sa.TwitAnalysis(sta_.stock_twit)

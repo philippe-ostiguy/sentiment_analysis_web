@@ -45,15 +45,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 
-class StockTwitsApi(InitStockTwit):
+class StockTwitsApi():
     """Class to make API Calls to the Stocktwits API
 
     No need to authenticate (but API rate limit is lower than if we authenticate). We use the class to get the most
     active stocks on Stock Twits (at the moment of writting that).
     """
 
-    def __init__(self):
+    def __init__(self,init):
         """
+        Parameter
+        ----------
+        `init` : cls
+            class from the module `initialize.py` that initializes global variables for the project
+
         Attributes
         ----------
         `self.api_endpoint` : str
@@ -81,7 +86,6 @@ class StockTwitsApi(InitStockTwit):
             Endpoint of the stock we want to webscrap
 
         """
-        super().__init__()
 
         self.api_endpoint = 'https://api.stocktwits.com/api/2/trending/symbols/equities.json'
         self.most_active_endpoint = 'https://stocktwits.com/rankings/most-active'
