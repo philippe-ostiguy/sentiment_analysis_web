@@ -91,7 +91,7 @@ class StockTwitsApi():
         self.driver = self.init.driver #driver to webscrap data on Selenium
 
         self.stock_endpoint = 'https://stocktwits.com/symbol/' + 'gib'
-        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
+        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../chromedriver')
         self.response_parameters = ['symbol']
         self.scroll_pause_time = 1
         self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S' #time
@@ -115,7 +115,6 @@ class StockTwitsApi():
 
         now = datetime.now()  # get the current datetime, this is our starting point
         start_time = now - timedelta(hours=self.init.time_ago)  # datetime according to the number of the days ago we want
-        #now = now.strftime(self.date_format)  # convert now datetime to format for API
 
         #Write the day in Xpath format for stocktwits
         text = [str(start_time.month), str(start_time.day),start_time.strftime('%y')]
@@ -160,39 +159,17 @@ class StockTwitsApi():
             #If 'Bullish' or 'bearish', set the column 'directional to 'bullish or 'bearish accordindly.
             if (directional.group(1) == 'Bearish' or directional.group(1) == 'Bullish'):
                 self.twit_dictionary[self.init.columns_sentiment[2]] = directional.group(1)
-                # set the value in the column 'time_published'
-                #twit_dictionary[self.columns_twits[0]] = "\n".join(twit.text.split("\n", 3)[2:3])
+
 
             #If the directional is not mentioned, then `directional.group(1)` is the 'time_published'
             else:
                 self.twit_dictionary[self.init.columns_sentiment[2]] = ''
-                #twit_dictionary[self.columns_twits[0]] = directional.group(1)
+
 
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append(self.twit_dictionary,ignore_index=True)
 
-            #self.columns_twits = ['time_published', 'directional', 'text']
-            #self.columns_sentiment = ['text', 'probability', 'directional']
             
         return self.init.pd_stock_sentiment
-
-
-        """
-            reddit_dictionary = {}  # dictionary with information from twits
-            i = 0
-            for comment in self.reddit_comments:
-                # check if the post contains the stock (keywords) we are looking for
-                for stock, keywords in self.stock_dictionnary.items():
-                    # check if the comment contains at least one of the keyword
-                    if any(keyword in comment for keyword in keywords):
-                        # remove all unescessary text (transform emoji, remove \n, remove other symbol like $)
-                        tempo_comment = pm.text_cleanup(comment)
-                        reddit_dictionary[self.init.columns_sentiment[0]] = tempo_comment
-                        reddit_dictionary[self.init.columns_sentiment[1]] = self.roberta.roberta_analysis(tempo_comment)
-                        self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append \
-                            (reddit_dictionary, ignore_index=True)
-                        break  # not analyzing the same post twice (in case we have more than 1 keyword)
-            return self.init.pd_stock_sentiment
-            """
 
     def scroll_to_value(self):
         """Method that scrolls until we find the value, then stops. It search for a date and the class containg

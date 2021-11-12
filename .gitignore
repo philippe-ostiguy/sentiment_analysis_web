@@ -6,9 +6,11 @@
 lid.176.bin
 lid.176.ftz
 LICENSE
-/web_scrapping/chromedriver
+/chromedriver
 README.md
 /geckodriver.log
 /web_scrapping/reddit_api_old.py
 /web_scrapping/stocktwits_api_old.py
 /sentiment_analysis/twits_analysis_old.py
+chromedriver
+/web_scrapping/twitter_api_old.py

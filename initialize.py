@@ -97,6 +97,7 @@ class InitProject():
                                                                             #automatically
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
         self.driver = "" #driver in Selenium to webscrap data
+        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
 
     def __call__(self):
 
@@ -152,10 +153,10 @@ class InitProject():
             "profile.default_content_setting_values.notifications": 2
         })
 
-        # self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
-        profile = webdriver.FirefoxProfile()
-        profile.set_preference('intl.accept_languages', 'en-US, en')
-        self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
+        self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        #profile = webdriver.FirefoxProfile()
+        #profile.set_preference('intl.accept_languages', 'en-US, en')
+        #self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
 
 
 class InitNewsHeadline():
