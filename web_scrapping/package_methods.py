@@ -27,6 +27,14 @@
 from datetime import datetime
 import re
 import emoji
+import time
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 
 def delta_date(start_date,end_date):
@@ -89,7 +97,7 @@ def webscrap_content(**kwargs):
     """Method to web-scrap content on Stocktwits
     """
 
-    kwargs['driver'].get(self.stock_endpoint)
+    kwargs['driver'].get(kwargs['end_point'])
     time.sleep(kwargs['pause_time'])
     scroll_to_value(**kwargs)
     time.sleep(kwargs['pause_time'])
@@ -106,7 +114,7 @@ def scroll_to_value(**kwargs):
     value_to_search =  '//a[@class="{}" and contains(text(),"{}")]'.format(kwargs['class_time'],kwargs['date_'])
     while not element_:
 
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        kwargs['driver'].execute_script("window.scrollTo(0, document.body.scrollHeight);")
         try:
             element_ = wait.until(EC.presence_of_element_located((By.XPATH,value_to_search)))
 

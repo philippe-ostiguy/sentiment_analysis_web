@@ -24,7 +24,7 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-"""It's the module to get info and make API calls to StockTwits"""
+"""It's the module to webscrap data on Stocktwits"""
 
 import requests
 from datetime import datetime, timedelta,time
@@ -35,24 +35,16 @@ import pandas as pd
 import web_scrapping.package_methods as pm
 import os
 import sentiment_analysis as sa
-from selenium import webdriver
 from collections import defaultdict
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 import web_scrapping.package_methods as pm
 
 class StockTwitsApi():
-    """Class to make API Calls to the Stocktwits API
+    """Class to webscrap content on Stocktwits
 
-    No need to authenticate (but API rate limit is lower than if we authenticate). We use the class to get the most
-    active stocks on Stock Twits (at the moment of writting that).
     """
 
     def __init__(self,init,init_sentiment):
+
         """
         Parameter
         ----------
@@ -61,8 +53,6 @@ class StockTwitsApi():
 
         Attributes
         ----------
-        `self.response_parameters` : list
-            list containing the parameters we want to get from the API response
         `self.driver_file_name` : str
             Chrome driver's file name
         `self.pause_time` : long
@@ -77,8 +67,6 @@ class StockTwitsApi():
             Number of hours in the past we want to webscrape the data. The value must be 24 hours or more or it
             the webscrapping of data will not work properly. If we want to set a value between 1 hour and 24 hours, we
             must review the function `self.convert_time()`
-        `self.ticker_st` : str
-            Ticker we want to webscrap
         `self.stock_endpoint` : str
             Endpoint of the stock we want to webscrap
         """
@@ -92,8 +80,6 @@ class StockTwitsApi():
         self.pause_time = self.init.pause_time
         
         self.stock_endpoint = 'https://stocktwits.com/symbol/' + 'gib'
-        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../chromedriver')
-        self.response_parameters = ['symbol']
         self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S' #time
         self.class_twits = 'st_29E11sZ st_jGV698i st_1GuPg4J st_qEtgVMo st_2uhTU4W'
         self.class_directional = 'lib_XwnOHoV lib_3UzYkI9 lib_lPsmyQd lib_2TK8fEo' #bull or bear
@@ -105,10 +91,10 @@ class StockTwitsApi():
         
     def __call__(self):
 
-
         self.convert_time()
-        self.stock_twits = pm.webscrap_content(driver=self.driver,class_twits=self.class_twits,
-                                               class_time=self.class_time,date_=self.date_,pause_time=self.pause_time)
+        self.stock_twits = pm.webscrap_content(driver=self.driver,class_twits=self.class_twits, date_=self.date_,
+                                               end_point=self.stock_endpoint,class_time=self.class_time,
+                                               pause_time=self.pause_time)
         return self.analyse_content()
 
     def convert_time(self):

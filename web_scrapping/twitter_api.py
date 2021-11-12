@@ -24,144 +24,98 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-"""It's the module to get info and make API calls to Twitter
-PROBLÈMES:
-L'API de Twitter permet seulement d'aller chercher jusqu'au 7 derniers jours les tweets max (avant, pas possible)
-- Problème avec la version 2 (API de Twitter). Impossible d'aller chercher des tickers avec le cashtag.
-Voir ce lien : https://stackoverflow.com/questions/66391136/how-to-solve-operator-error-on-twitter-search-api-2-0/68745951#68745951
-et ic : https://twittercommunity.com/t/reference-to-invalid-operator-cashtag-operator-is-not-available-in-current-product-or-product-packaging/141990/7
-
-- Problème avec la version 1 (API de Twitter). Impossible de dire un début de date. Donc, on aura seulement un maximum
-de 100 tweets à partir du moment de la requête (paramètre `count` peut aller à max 100).
-On peut avoir des tweets à partir seulement de `since_id` (paramètre) qui est selon l'ID d'un tweet
-https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets
-
-
-"""
+"""It's the module to webscrap data on Twitter"""
 
 import requests
-from datetime import datetime, timedelta,time
-from dateutil.relativedelta import relativedelta
-from decouple import config
+from datetime import datetime, timedelta, time
 import time
+from initialize import InitStockTwit
 import re
 import pandas as pd
+import web_scrapping.package_methods as pm
+import os
+import sentiment_analysis as sa
+from collections import defaultdict
+import web_scrapping.package_methods as pm
 
-def delta_date(start_date,end_date):
-    """Function that returns the number of days between 2 dates """
 
-    return abs((datetime.strptime(start_date, "%Y-%m-%d") - datetime.strptime(end_date, "%Y-%m-%d")).days)
+class TwitsApi():
+    """Class to webscrap content on Twitter
 
-def get_data(dict,keys_):
-    """Function that stores the data from a dictionary with the specific keys in a a new dictionary
-    Parameters
-    ----------
-    `dict` : dictionary
-        API's endpoint parameter
-    `keys_` : list
-        list of the keys in the dictionary we want to store in the new_didt
-    """
-    new_dict = {}
-    for key in keys_:
-        new_dict[key]=dict[key]
-    return new_dict
-
-class TwitterApi_():
-    """Class to make API calls to Twitter API
-
-    With the free version you can get up to the last 7 days of tweets and maximum results of 100 tweets per API call
-    https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference
-
-    On oublie l'API de Twitter, car on ne peut pas faire de recherche sur des symboles ($). Ce n'est pas supporté
-    pour le public, seulement pour 'académique'
     """
 
-    def __init__(self):
+    def __init__(self, init, init_sentiment):
+
         """
+        Parameter
+        ----------
+        `init` : cls
+            class from the module `initialize.py` that initializes global variables for the project
+
         Attributes
         ----------
-        `self.twitter_api` : str
-            twitter API bearer token to acces "my" twitter application
-        `self.date_format` : str
-            date format for the Twitter API's call. Required by Twitter
-        `self.headers` : str
-            headers for the API's call
-        `self.params` : str
-            parameters for the API's call
-        `self.endpoint` : str
-            API's endpoint parameter
-        `self.query` : str
-            API's query parameter
-        `self.max_results` : int
-            API's max results parameter. Default and max by Twitter is 100
-        `self.days_ago` : str
-            number of days ago from now that we want tweets. Max days ago is 7
-        `self.nb_minutes` : int
-            number of minutes that we collect data per API call. Hard to determine but from observations it should not
-            be above 5 minutes
+        `self.pause_time` : long
+            pause time when scrolling down the page and pause between manipulations on browser to load
+        `self.class_time` : str
+            Name of the class in Twitter containing the published time of a twit
+        `self.class_twits` : str
+            Name of the class in Twitter containing the twits (text, directional))
+        `self.init.time_ago` : int
+            Number of hours in the past we want to webscrape the data. The value must be 24 hours or more or it
+            the webscrapping of data will not work properly. If we want to set a value between 1 hour and 24 hours, we
+            must review the function `self.convert_time()`
+        `self.stock_endpoint` : str
+            Endpoint of the stock we want to webscrap
         """
 
-        self.twitter_bearer = config('BEARER_TOKEN_TWITTER')
-        self.date_format = '%Y-%m-%dT%H:%M:%SZ'
+        # We should touch these data. They come from the classes where we initialize the data
+        self.init = init  # variable for the class containing the global variables for the project
+        # variable for the class with the model/transformer to analyse twits/comments
+        self.init_sentiment = init_sentiment
+        self.time_ago = self.init.time_ago
+        self.driver = self.init.driver  # driver to webscrap data on Selenium
+        self.pause_time = self.init.pause_time
 
-        #version 2 API Twitter
-        self.endpoint = 'https://api.twitter.com/2/tweets/search/recent' #version 2
-        self.query = 'SPY' + ' lang:en'
+        self.stock_endpoint = 'https://twitter.com/search?q=%24' + 'gbi' + '&src=typed_query&f=live'
+        self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S'  # time
+        self.class_twits = 'st_29E11sZ st_jGV698i st_1GuPg4J st_qEtgVMo st_2uhTU4W'
 
-        self.max_results = 100
-        self.days_ago = 30 #à changer après = mettre max 7
-        self.nb_minutes = 15
-
-        #version 2 API twitter
-        self.params = {
-            'query' : self.query,
-            'max_results' : self.max_results,
-            'tweet.fields' : 'created_at,lang,text'
-        }
-
-        self.headers = {'authorization': f'Bearer {self.twitter_bearer}'}
-        self.df = pd.DataFrame() #dataframe to store the tweets
-
+        self.date_ = ''  # date if different from today in the Xpath
+        self.twits = ""  # contains the twit fetched from Twitter (text, date, directional ie bullish or bearish)
+        self.twit_dictionary = {}  # dictionary with information from twits
 
     def __call__(self):
-        self.get_tweets_()
-        t = 5
 
-    def get_data(self,tweet):
-        data = {
-            'id': tweet['id'],
-            'created_at': tweet['created_at'],
-            'text': tweet['full text']
-        }
-        return data
+        self.convert_time()
+        self.stock_twits = pm.webscrap_content(driver=self.driver, class_twits=self.class_twits, date_=self.date_,
+                                               end_point=self.stock_endpoint, class_time=self.class_time,
+                                               pause_time=self.pause_time)
+        return self.analyse_content()
 
-    def get_previous_time(self,now, mins):
-        """ """
-        now = datetime.strptime(now, self.date_format)
-        back_in_time = now - timedelta(minutes=mins)
-        return back_in_time.strftime(self.date_format)
+    def convert_time(self):
+        """Method to convert time readable in the Xpath in Selenium.
+        """
 
-    def get_tweets_(self):
         now = datetime.now()  # get the current datetime, this is our starting point
-        start_time = now - timedelta(minutes=self.days_ago)  # datetime according to the number of the days ago we want
-        now = now.strftime(self.date_format)  # convert now datetime to format for API
+        start_time = now - timedelta(
+            hours=self.init.time_ago)  # datetime according to the number of the days ago we want
 
-        while True:
-            if datetime.strptime(now, self.date_format) < start_time:
-                # if we have reached `self.days_ago` days ago, break the loop
-                break
+        # Write the day in Xpath format for Twitter
+        text = [str(start_time.month), str(start_time.day), start_time.strftime('%y')]
+        self.date_ = ('/'.join(text))
 
-            pre_now = self.get_previous_time(now, self.nb_minutes)  # get `self.nb_minutes` minutes before 'now'
+    def analyse_content(self):
+        """Method to analyse content on Twitter"""
 
-            # assign from and to datetime parameters for the API
-            self.params['start_time'] = pre_now
-            self.params['end_time'] = now
-            response = requests.get(self.endpoint,
-                                    params=self.params,
-                                    headers=self.headers)  # send the request
-            now = pre_now  # move the new window (now) `self.nb_minutes` before 'now'
+        for twit in self.twits:
 
-            # iteratively append our tweet data to our dataframe
-            for tweet in response.json()['data']:
-                row = self.get_data(tweet)
-                self.df = self.df.append(row, ignore_index=True)
+            # remove all unescessary text (emoji, \n, other symbol like $)
+            twit_tempo = pm.text_cleanup(twit_tempo)
+            # writing the comments in the dictionary
+            self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
+            # writing the sentiment analysis result in the dictionary
+            self.twit_dictionary[self.init.columns_sentiment[1]] = self.init_sentiment.roberta_analysis(twit_tempo)
+
+            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append(self.twit_dictionary, ignore_index=True)
+
+        return self.init.pd_stock_sentiment
