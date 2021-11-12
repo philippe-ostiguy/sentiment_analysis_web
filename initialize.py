@@ -92,14 +92,14 @@ class InitProject():
             We may need to increase this value as the page may be loaded at different time interval and needs to be 
             long enough :  https://selenium-python.readthedocs.io/waits.html
         `self.comment_source` : list
-            source of comments/twits
+            source of comments/twits that we analyse the sentiment
         """
 
         #list of variables we can change ourself
         self.columns_sentiment = ['text','probability','directional','source']
         self.comment_source = ['reddit','stocktwit','twitter']
         self.time_ago = 24
-        self.pause_time = 1
+        self.pause_time = 2
 
         # list of variables that we should not set ourself
         self.us_holidays = []

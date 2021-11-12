@@ -87,6 +87,7 @@ if __name__ == '__main__':
     #init_main.pd_stock_sentiment =  sta_()
     ta = ws.TwitsApi(init_main,init_roberta)
     init_main.pd_stock_sentiment = ta()
+    t = 5
 
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500

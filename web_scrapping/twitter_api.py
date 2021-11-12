@@ -76,7 +76,7 @@ class TwitsApi():
                           'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
         self.class_twits = 'css-901oao r-18jsvk2 r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0'
 
-        self.buffer_date_ = 10
+        self.buffer_date_ = 30
         self.date_ = ''  # date if different from today in the Xpath
         self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
         self.twits = ""  # contains the twit fetched from Twitter (text, date, directional ie bullish or bearish)
@@ -124,23 +124,23 @@ class TwitsApi():
             iteration += 1
 
 
-    def write_values(self):
-        """Method to write values (sentiment, comments) in the Pandas Dataframe"""
+    def loop_twits(func):
+        """Decorator to loop throught the comments that we webscrap"""
 
-        for twit in self.twits:
+        def wrapper_(self):
+            for twit in self.twits:
+                func(self,twit.text)
 
-            # remove all unescessary text (emoji, \n, other symbol like $)
-            t = twit.text
-            twit_tempo = pm.text_cleanup(twit.text)
-            #if it's empty after cleaning, just continue, don't save/analyse the comment
-            if twit_tempo == '':
-                continue
-            # writing the comments in the dictionary
-            self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
-            # writing the sentiment analysis result in the dictionary
-            self.twit_dictionary[self.init.columns_sentiment[1]] = self.init_sentiment.roberta_analysis(twit_tempo)
-            self.twit_dictionary[self.init.columns_sentiment[3]] = self.init.comment_source[2]
+            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
+                (subset=self.pv.columns_sentiment[0], keep="first")
+            return self.init.pd_stock_sentiment
+        return wrapper_
 
-            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append(self.twit_dictionary, ignore_index=True)
+    @loop_twits
+    def write_values(self,twit):
+        """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
+         (-1 being the most negative and +1 being the most positive and write different values in the
+         pandas DataFrame `self.pd_stock_sentiment`"""
 
-        return self.init.pd_stock_sentiment
+        self.init.pd_stock_sentiment = pm.write_values(comment = twit,dict_ = self.twit_dictionary,pv = self.init,
+                                                     model = self.init_sentiment,source = 2)
