@@ -52,7 +52,7 @@ class StockTwitsApi():
     active stocks on Stock Twits (at the moment of writting that).
     """
 
-    def __init__(self,init):
+    def __init__(self,init,init_sentiment):
         """
         Parameter
         ----------
@@ -74,21 +74,23 @@ class StockTwitsApi():
         `self.class_directional` : str
             Name of the class with the directional (bull or bear)
         `self.init.time_ago` : int
-            Number of hours in the past we want to webscrape the data. This value must be 1 hour or more as the time
-            format in Stockwits is 'hh:mm AM (or PM)' except when it's under 1 hour.
+            Number of hours in the past we want to webscrape the data. The value must be 24 hours or more or it
+            the webscrapping of data will not work properly. If we want to set a value between 1 hour and 24 hours, we
+            must review the function `self.convert_time()`
         `self.ticker_st` : str
             Ticker we want to webscrap
         `self.stock_endpoint` : str
             Endpoint of the stock we want to webscrap
-
         """
 
-        self.init = init
+        #We should touch these data. They come from the classes where we initialize the data
+        self.init = init #variable for the class containing the global variables for the project
+        # variable for the class with the model/transformer to analyse twits/comments
+        self.init_sentiment = init_sentiment 
         self.time_ago = self.init.time_ago
-        self.time_ago = 1
+        self.driver = self.init.driver #driver to webscrap data on Selenium
 
-        self.stock_endpoint = 'https://stocktwits.com/symbol/' + str(list(self.init.stock_dictionnary.keys()[0]))
-
+        self.stock_endpoint = 'https://stocktwits.com/symbol/' + 'gib'
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         self.response_parameters = ['symbol']
         self.scroll_pause_time = 1
@@ -98,13 +100,14 @@ class StockTwitsApi():
 
         self.date_ = '' #date if different from today in the Xpath
         self.stock_twits = "" #contains the twit fetched from stocktwits (text, date, directional ie bullish or bearish)
-
+        self.twit_dictionary = {}  # dictionary with information from twits
+        
+        
     def __call__(self):
 
         self.convert_time()
         self.webscrap_content()
-        self.analyse_content()
-
+        return self.analyse_content()
 
     def convert_time(self):
         """Method to convert time readable in the Xpath in Selenium.
@@ -122,15 +125,11 @@ class StockTwitsApi():
         """Method to web-scrap content on Stocktwits
         """
 
-        driver = webdriver.Chrome(executable_path=self.driver_file_name)
-        driver.get(self.stock_endpoint)
-        time.sleep(2)
-
-        twit_dictionary = {} #dictionary with information from twits
-
-        self.scroll_to_value(driver)
-        time.sleep(2)
-        self.stock_twits = driver.find_elements_by_xpath(
+        self.driver.get(self.stock_endpoint)
+        time.sleep(1)
+        self.scroll_to_value()
+        time.sleep(1)
+        self.stock_twits = self.driver.find_elements_by_xpath(
             "//div[@class='{}']".format(self.class_twits))
 
     def analyse_content(self):
@@ -151,27 +150,29 @@ class StockTwitsApi():
 
             #remove all unescessary text (emoji, \n, other symbol like $)
             twit_tempo = pm.text_cleanup(twit_tempo)
-
-            twit_dictionary[self.columns_sentiment[0]] = twit_tempo
-            twit_dictionary[self.columns_sentiment[2]] = '' #set directional to 'empty'
+            #writing the comments in the dictionary
+            self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
+            #writing the sentiment analysis result in the dictionary
+            self.twit_dictionary[self.init.columns_sentiment[1]] = self.init_sentiment.roberta_analysis(twit_tempo)
 
 
             directional = re.search('\n(.*)\n', twit.text) #searching for 'bearish' or 'bullish' in the twit
             #If 'Bullish' or 'bearish', set the column 'directional to 'bullish or 'bearish accordindly.
             if (directional.group(1) == 'Bearish' or directional.group(1) == 'Bullish'):
-                twit_dictionary[self.columns_twits[1]] = directional.group(1)
+                self.twit_dictionary[self.init.columns_sentiment[2]] = directional.group(1)
                 # set the value in the column 'time_published'
                 #twit_dictionary[self.columns_twits[0]] = "\n".join(twit.text.split("\n", 3)[2:3])
 
             #If the directional is not mentioned, then `directional.group(1)` is the 'time_published'
             else:
-                pass
+                self.twit_dictionary[self.init.columns_sentiment[2]] = ''
                 #twit_dictionary[self.columns_twits[0]] = directional.group(1)
 
-            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append(twit_dictionary,ignore_index=True)
+            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append(self.twit_dictionary,ignore_index=True)
 
-            self.columns_twits = ['time_published', 'directional', 'text']
-            self.columns_sentiment = ['text', 'probability', 'directional']
+            #self.columns_twits = ['time_published', 'directional', 'text']
+            #self.columns_sentiment = ['text', 'probability', 'directional']
+            
         return self.init.pd_stock_sentiment
 
 
@@ -193,19 +194,19 @@ class StockTwitsApi():
             return self.init.pd_stock_sentiment
             """
 
-    def scroll_to_value(self,driver):
+    def scroll_to_value(self):
         """Method that scrolls until we find the value, then stops. It search for a date and the class containg
         the date"""
 
 
-        wait = WebDriverWait(driver, self.scroll_pause_time)
+        wait = WebDriverWait(self.driver, self.scroll_pause_time)
         element_ = None
+        value_to_search =  '//a[@class="{}" and contains(text(),"{}")]'.format(self.class_time,self.date_)
         while not element_:
 
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             try:
-                element_ = wait.until(EC.presence_of_element_located((By.XPATH, "//a[@class='{}') "
-                               "and contains(text(),'{}')]".format(self.class_time,self.date_))))
+                element_ = wait.until(EC.presence_of_element_located((By.XPATH,value_to_search)))
 
             except TimeoutException:
                 pass

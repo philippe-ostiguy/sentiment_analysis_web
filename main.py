@@ -54,6 +54,7 @@ class InitMain(InitProject):
         init = InitProject()
         init()
         self.us_holidays = init.us_holidays
+        self.driver = init.driver
         self.check_closed_days()
 
 
@@ -74,16 +75,16 @@ if __name__ == '__main__':
     init_main()
 
     #initialize the Roberta sentiment analysis
-    #init_roberta = sa.TwitAnalysis(init_main)
-    #init_roberta() #built-in call method to initialize the model
+    init_roberta = sa.TwitAnalysis(init_main)
+    init_roberta() #built-in call method to initialize the model
 
     # fetching the data on social media and twitter
     #ra_ = ws.RedditApi_(init_main,init_roberta)
     #init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
     # Transformer
 
-    sta_ = ws.StockTwitsApi(init_main)
-    sta_()
+    sta_ = ws.StockTwitsApi(init_main,init_roberta)
+    init_main.pd_stock_sentiment =  sta_()
     ba = sa.TwitAnalysis(sta_.stock_twit)
     ba()
 

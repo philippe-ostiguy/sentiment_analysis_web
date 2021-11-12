@@ -32,16 +32,12 @@ import time
 import pandas as pd
 import os
 import web_scrapping.package_methods as pm
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.firefox import GeckoDriverManager
 
 
 
@@ -126,14 +122,15 @@ class RedditApi_():
 
         super().__init__()
 
-
-        self.date_ = ""
+        #We should touch these data. They come from the classes where we initialize the data
         self.pv = init #giving the values of class `init` to `self.pv` variable (pv for project variables)
         self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
         self.us_holidays = self.pv.us_holidays #list of US Stock Holiday
         self.time_ago = self.pv.time_ago
         self.stock_dictionnary = self.pv.stock_dictionnary
+        self.driver = self.pv.driver #driver to webscrap data on Selenium
 
+        self.date_ = ""
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
         # self.stock_endpoint
@@ -175,6 +172,7 @@ class RedditApi_():
         self.scroll_to_end()
         return self.analyse_content()
 
+    """
     def init_driver(self):
 
         # Options for Chrome Driver
@@ -191,6 +189,7 @@ class RedditApi_():
         profile = webdriver.FirefoxProfile()
         profile.set_preference('intl.accept_languages', 'en-US, en')
         self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
+    """
 
     def set_time_ago(self):
         """Modifiy `self.time_ago` depending if the current day is Monday (so that previous days are the weekend)

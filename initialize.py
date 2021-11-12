@@ -34,6 +34,10 @@ import re
 import requests
 import bs4 as bs
 import pandas as pd
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.firefox import GeckoDriverManager
 
 
 def get_tickers():
@@ -92,12 +96,13 @@ class InitProject():
         self.stock_dictionnary = {'Tsla': ['TSLA', 'Tesla', 'tesla']} #this will be changed later and set
                                                                             #automatically
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
+        self.driver = "" #driver in Selenium to webscrap data
 
     def __call__(self):
 
         # calling the functions
         self.get_us_holiday()
-
+        self.init_driver()
 
     def get_us_holiday(self):
         """Get the US Stock holidays """
@@ -134,7 +139,23 @@ class InitProject():
         if not self.us_holidays :
             raise Exception(f"List ``self.us_holidays {self.us_holidays} is empty in package `initialize.py`")
 
+    def init_driver(self):
+        """Method to initialize the driver to webscrap data. We can put it Chrome of Firefox"""
 
+        # Options for Chrome Driver
+        option = Options()
+        option.add_argument("--disable-infobars")
+        option.add_argument("start-maximized")
+        option.add_argument("--disable-extensions")
+        # Pass the argument 1 to allow notifications and 2 to block them
+        option.add_experimental_option("prefs", {
+            "profile.default_content_setting_values.notifications": 2
+        })
+
+        # self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference('intl.accept_languages', 'en-US, en')
+        self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
 
 
 class InitNewsHeadline():
