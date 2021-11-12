@@ -28,7 +28,7 @@
 """
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
 import re
 import requests
@@ -83,7 +83,10 @@ class InitProject():
         `self.pd_stock_sentiment` : pandas.DataFrame
             Pandas DataFrame that contains the sentiment/mood for each stock we are webscrapping on social media
         `self.stock_dictionnary` : dict
-            dictionary of stocks (keys) with keywords associated with them (values) that we are looking in the post
+            dictionary of stocks (keys) with keywords associated with them (values) that we are looking in the post.
+            For reddit, we are searching with the keywords (values), whereas in Stocktwits and Twitter only with the
+            key (ticker). On twitter and stocktwits, URL are based on the 'ticker', ex :
+            https://twitter.com/search?q=%24gib&src=typed_query&f=live. On Reddit, we search by keyword on a post
         `self.pause_time` : long
             pause time when scrolling down the pageand pause between manipulations on browser to load. 
             We may need to increase this value as the page may be loaded at different time interval and needs to be 
@@ -95,7 +98,6 @@ class InitProject():
         self.time_ago = 24
         self.pause_time = 1
 
-        
         # list of variables that we should not set ourself
         self.us_holidays = []
         self.stock_dictionnary = {'Tsla': ['TSLA', 'Tesla', 'tesla']} #this will be changed later and set
@@ -103,12 +105,15 @@ class InitProject():
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
         self.driver = "" #driver in Selenium to webscrap data
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
+        self.check_weekend = False  # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
+        # False per default.
 
     def __call__(self):
 
         # calling the functions
         self.get_us_holiday()
         self.init_driver()
+        self.set_time_ago()
 
     def get_us_holiday(self):
         """Get the US Stock holidays """
@@ -163,6 +168,30 @@ class InitProject():
         #profile.set_preference('intl.accept_languages', 'en-US, en')
         #self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
 
+    def set_time_ago(self):
+        """Modifiy `self.time_ago` depending if the current day is Monday (so that previous days are the weekend)
+        anr/or if the current day is a US Stock Holiday"""
+
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+
+        # check if it Monday today
+        if date.today().weekday() == 0:
+            self.time_ago += 48  # add 48 hours because of Saturday and Sunday
+            self.check_weekend = True  # fetching data on the 'weekend discussion' in wallstreetbet
+
+        # check if yesterday was a holiday
+        if ((yesterday.month in [date_.month for date_ in self.us_holidays]) and
+                (yesterday.year in [date_.year for date_ in self.us_holidays]) and
+                (yesterday.day in [date_.day for date_ in self.us_holidays])):
+
+            # if current days is Tuesday, then 2 days before was the weekend
+            if date.today().weekday() == 1:
+                self.time_ago += 48
+                self.check_weekend = True  # fetching data on the 'weekend discussion' in wallstreetbet
+
+            else:
+                self.time_ago += 24
 
 class InitNewsHeadline():
     """Class that initializes global value for the module for sentiment analysis of news headline.

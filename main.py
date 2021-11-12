@@ -53,10 +53,10 @@ class InitMain(InitProject):
         # initialize the project variables
         init = InitProject()
         init()
-        self.us_holidays = init.us_holidays
         self.driver = init.driver
+        self.time_ago = init.time_ago
+        self.us_holidays = init.us_holidays
         self.check_closed_days()
-
 
     def check_closed_days(self):
         """ Function that checks if the current days is weekend or a US Stock holiday"""
@@ -79,14 +79,14 @@ if __name__ == '__main__':
     init_roberta() #built-in call method to initialize the model
 
     # fetching the data on social media and twitter
-    #ra_ = ws.RedditApi_(init_main,init_roberta)
-    #init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
+    ra_ = ws.RedditApi_(init_main,init_roberta)
+    init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
     # Transformer
 
-    sta_ = ws.StockTwitsApi(init_main,init_roberta)
-    init_main.pd_stock_sentiment =  sta_()
-    ba = sa.TwitAnalysis(sta_.stock_twit)
-    ba()
+    #sta_ = ws.StockTwitsApi(init_main,init_roberta)
+    #init_main.pd_stock_sentiment =  sta_()
+    ta = ws.TwitsApi(init_main,init_roberta)
+    init_main.pd_stock_sentiment = ta()
 
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500

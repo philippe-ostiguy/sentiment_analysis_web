@@ -101,8 +101,7 @@ def webscrap_content(**kwargs):
     time.sleep(kwargs['pause_time'])
     scroll_to_value(**kwargs)
     time.sleep(kwargs['pause_time'])
-    return kwargs['driver'].find_elements_by_xpath(
-        "//div[@class='{}']".format(kwargs['class_twits']))
+    return kwargs['driver'].find_elements_by_xpath(kwargs['posts_to_return'])
 
 def scroll_to_value(**kwargs):
     """Method that scrolls until we find the value, then stops. It search for a date and the class containg
@@ -111,12 +110,12 @@ def scroll_to_value(**kwargs):
 
     wait = WebDriverWait(kwargs['driver'], kwargs['pause_time'])
     element_ = None
-    value_to_search =  '//a[@class="{}" and contains(text(),"{}")]'.format(kwargs['class_time'],kwargs['date_'])
+
     while not element_:
 
         kwargs['driver'].execute_script("window.scrollTo(0, document.body.scrollHeight);")
         try:
-            element_ = wait.until(EC.presence_of_element_located((By.XPATH,value_to_search)))
+            element_ = wait.until(EC.presence_of_element_located((By.XPATH,kwargs['date_to_search'])))
 
         except TimeoutException:
             pass

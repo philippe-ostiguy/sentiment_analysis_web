@@ -38,8 +38,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-
-
+import web_scrapping.package_methods as pm
 
 class RedditApi_():
     """Class to webscrap data on Reddit using Selenium. It stores it in a pandas dataFrame.
@@ -61,7 +60,7 @@ class RedditApi_():
 
         Attributes
         ----------
-        `self.stock_dictionary` : dict
+        `self.pv.stock_dictionary` : dict
             name of the stock we want to analyse the data with the keywords associated with that stock.
             Ex : { Tesla : ['TSLA', 'tesla'] }. The stock we are seaching data for is 'Tesla'. The first value for each
             stock (key) is the ticker which should be in capital letter only. Ex: Keyword is 'TSLA' we will only search
@@ -76,10 +75,6 @@ class RedditApi_():
             The program is made to search the last 24 hours and
             it operates this way. Ex: the function `self.set_time_ago()` changes `self.time_ago` depending if we are on
             Monday or on a US Stock holiday and will fetch accordingly.
-        `self.pause_time` : long
-            pause time when scrolling down the pageand pause between manipulations on browser to load.
-            We may need to increase this value as the page may be loaded at different time interval and needs to be
-            long enough :  https://selenium-python.readthedocs.io/waits.html
         `self.api_endpoint` : str
             API's endpoint parameter
         `self.class_time` : str
@@ -106,8 +101,6 @@ class RedditApi_():
             URL on Reddit to obtain the daily discussion post and links
         `self.weekend_discussion_url` : str
             URL on reddit to obtain the weekend discussion post and links
-        `self.driver` : selenium driver
-            Selenium from driver to webscrap the data
         `self.class_post` : str
             class in reddit (in DOM) for the post (get URL, and time it was created)
         """
@@ -117,12 +110,8 @@ class RedditApi_():
         #We should touch these data. They come from the classes where we initialize the data
         self.pv = init #giving the values of class `init` to `self.pv` variable (pv for project variables)
         self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
-        self.us_holidays = self.pv.us_holidays #list of US Stock Holiday
-        self.time_ago = self.pv.time_ago
-        self.stock_dictionnary = self.pv.stock_dictionnary #stock with keyword to look in reddit
-        self.driver = self.pv.driver #driver to webscrap data on Selenium
-        self.pause_time = self.pv.scroll_pause_time #pausing time when loading page (browser)
-        
+
+
         self.date_ = ""
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
@@ -133,8 +122,6 @@ class RedditApi_():
         self.weekend_discussion_url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair_name' \
                                       '%3A%22Weekend%20Discussion%22&restrict_sr=1&sr_nsfw=&sort=new'
         self.class_post ='_3jOxDPIQ0KaOWpzvSQo-1s'
-        self.check_weekend = False  # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
-                                    #False per default.
 
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU'  # time
         self.class_more_comments = '_3sf33-9rVAO_v4y0pIW_CH'
@@ -152,56 +139,12 @@ class RedditApi_():
         """Performs all the method necessary to webscrap the content on reddit's posts and analyse the mood of the
         comments"""
 
-        self.set_time_ago()
         self.time_to_search()
         self.rejected_replies()
         self.get_posts()
         self.scroll_to_end()
         return self.analyse_content()
-
-    """
-    def init_driver(self):
-
-        # Options for Chrome Driver
-        option = Options()
-        option.add_argument("--disable-infobars")
-        option.add_argument("start-maximized")
-        option.add_argument("--disable-extensions")
-        # Pass the argument 1 to allow notifications and 2 to block them
-        option.add_experimental_option("prefs", {
-            "profile.default_content_setting_values.notifications": 2
-        })
-
-        # self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
-        profile = webdriver.FirefoxProfile()
-        profile.set_preference('intl.accept_languages', 'en-US, en')
-        self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
-    """
-
-    def set_time_ago(self):
-        """Modifiy `self.time_ago` depending if the current day is Monday (so that previous days are the weekend)
-        anr/or if the current day is a US Stock Holiday"""
-
-        today = date.today()
-        yesterday = today - timedelta(days=1)
-
-        #check if it Monday today
-        if date.today().weekday() == 0:
-            self.time_ago += 48 #add 48 hours because of Saturday and Sunday
-            self.check_weekend =True #fetching data on the 'weekend discussion' in wallstreetbet
-
-        #check if yesterday was a holiday
-        if ((yesterday.month in [date_.month for date_ in self.us_holidays]) and
-            (yesterday.year in [date_.year for date_ in self.us_holidays]) and
-            (yesterday.day in [date_.day for date_ in self.us_holidays])):
-
-            #if current days is Tuesday, then 2 days before was the weekend
-            if date.today().weekday() == 1:
-                self.time_ago += 48
-                self.check_weekend = True # fetching data on the 'weekend discussion' in wallstreetbet
-
-            else :
-                self.time_ago += 24
+    
 
     def get_posts(self):
         """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is
@@ -216,19 +159,19 @@ class RedditApi_():
 
         #save the posts we will webscrap data from.
         #This if for the posts that we webscrap data from Tuesday to Friday
-        self.driver.get(self.daily_discussion_url)
+        self.pv.driver.get(self.daily_discussion_url)
         time.sleep(2)
         element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
         #posts url
         self.reddit_posts_url += [post.get_attribute("href") for post in
-                                   self.driver.find_elements_by_xpath(element_to_search)]
+                                   self.pv.driver.find_elements_by_xpath(element_to_search)]
 
-        if self.check_weekend:
-            self.driver.get(self.weekend_discussion_url)
+        if self.pv.check_weekend:
+            self.pv.driver.get(self.weekend_discussion_url)
             time.sleep(2)
             element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post, self.date__)
             self.reddit_posts_url += [post.get_attribute("href") for post in
-                                       self.driver.find_elements_by_xpath(element_to_search)]
+                                       self.pv.driver.find_elements_by_xpath(element_to_search)]
 
     def time_to_search(self):
         """Method that set the variable `self.date__` depending on  how far we need data `self.time_ago`.
@@ -253,7 +196,7 @@ class RedditApi_():
         i = 1
         j = 1
         #writing time for hours and days
-        while (i- 1)  < self.time_ago:
+        while (i- 1)  < self.pv.time_ago:
             str_tempo = str(i)
             #write time in hours
             if i == 1:
@@ -295,10 +238,10 @@ class RedditApi_():
         def wrapper_(self):
 
             for url_post in self.reddit_posts_url:
-                self.driver.get(url_post)
+                self.pv.driver.get(url_post)
                 time.sleep(2)
                 func(self)
-                self.reddit_comments += [comment.text for comment in self.driver.find_elements_by_xpath(
+                self.reddit_comments += [comment.text for comment in self.pv.driver.find_elements_by_xpath(
                     "//div[contains(@class,'{}')]".format(self.class_comments))]
         return wrapper_
 
@@ -310,7 +253,7 @@ class RedditApi_():
         i = 0
         for comment in self.reddit_comments:
             # check if the post contains the stock (keywords) we are looking for
-            for stock,keywords in self.stock_dictionnary.items():
+            for stock,keywords in self.pv.stock_dictionnary.items():
                 #check if the comment contains at least one of the keyword
                 if any(keyword in comment for keyword in keywords):
                     # remove all unescessary text (transform emoji, remove \n, remove other symbol like $)
@@ -332,9 +275,9 @@ class RedditApi_():
         - We don't fetch second-level comments (comments under first-level comment) as it will take to much time)
         """
 
-        wait = WebDriverWait(self.driver, self.pause_time)
+        wait = WebDriverWait(self.pv.driver, self.pv.pause_time)
         element = None
-        screen_height = self.driver.execute_script("return window.screen.height;")  # return window screen height
+        screen_height = self.pv.driver.execute_script("return window.screen.height;")  # return window screen height
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
         i = 1
@@ -342,10 +285,10 @@ class RedditApi_():
         while not element:
 
             # go to section in window according to `i` and `screen_height`
-            self.driver.execute_script("window.scrollTo(0, {screen_height}*{i});"
+            self.pv.driver.execute_script("window.scrollTo(0, {screen_height}*{i});"
                                        .format(screen_height=screen_height, i=i))
             # return DOM body height
-            scroll_height = self.driver.execute_script("return document.body.scrollHeight;")
+            scroll_height = self.pv.driver.execute_script("return document.body.scrollHeight;")
 
             # check if we are a the end of the page
             if (screen_height) * i > scroll_height:

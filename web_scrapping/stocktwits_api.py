@@ -39,9 +39,7 @@ from collections import defaultdict
 import web_scrapping.package_methods as pm
 
 class StockTwitsApi():
-    """Class to webscrap content on Stocktwits
-
-    """
+    """Class to webscrap content on Stocktwits """
 
     def __init__(self,init,init_sentiment):
 
@@ -53,17 +51,13 @@ class StockTwitsApi():
 
         Attributes
         ----------
-        `self.driver_file_name` : str
-            Chrome driver's file name
-        `self.pause_time` : long
-            pause time when scrolling down the page and pause between manipulations on browser to load
         `self.class_time` : str
             Name of the class in Stocktwits containing the published time of a twit
         `self.class_twits` : str
             Name of the class in Stocktwits containing the twits (text, directional)
         `self.class_directional` : str
             Name of the class with the directional (bull or bear)
-        `self.init.time_ago` : int
+        `self.time_ago` : int
             Number of hours in the past we want to webscrape the data. The value must be 24 hours or more or it
             the webscrapping of data will not work properly. If we want to set a value between 1 hour and 24 hours, we
             must review the function `self.convert_time()`
@@ -74,11 +68,8 @@ class StockTwitsApi():
         #We should touch these data. They come from the classes where we initialize the data
         self.init = init #variable for the class containing the global variables for the project
         # variable for the class with the model/transformer to analyse twits/comments
-        self.init_sentiment = init_sentiment 
-        self.time_ago = self.init.time_ago
-        self.driver = self.init.driver #driver to webscrap data on Selenium
-        self.pause_time = self.init.pause_time
-        
+        self.init_sentiment = init_sentiment
+
         self.stock_endpoint = 'https://stocktwits.com/symbol/' + 'gib'
         self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S' #time
         self.class_twits = 'st_29E11sZ st_jGV698i st_1GuPg4J st_qEtgVMo st_2uhTU4W'
@@ -88,13 +79,17 @@ class StockTwitsApi():
         self.stock_twits = "" #contains the twit fetched from stocktwits (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
         
-        
     def __call__(self):
 
+
         self.convert_time()
-        self.stock_twits = pm.webscrap_content(driver=self.driver,class_twits=self.class_twits, date_=self.date_,
-                                               end_point=self.stock_endpoint,class_time=self.class_time,
-                                               pause_time=self.pause_time)
+        self.date_to_search = '//a[@class="{}" and contains(text(),"{}")]'.format(self.class_time, self.date_)
+        # elements we are returning to analyse the comment itself
+        self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
+        self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
+                                               date_=self.date_, end_point=self.stock_endpoint,
+                                               class_time=self.class_time, pause_time=self.init.pause_time,
+                                               date_to_search = self.date_to_search)
         return self.analyse_content()
 
     def convert_time(self):
