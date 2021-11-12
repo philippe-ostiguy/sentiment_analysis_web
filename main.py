@@ -79,8 +79,8 @@ if __name__ == '__main__':
     init_roberta() #built-in call method to initialize the model
 
     # fetching the data on social media and twitter
-    ra_ = ws.RedditApi_(init_main,init_roberta)
-    init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
+    #ra_ = ws.RedditApi_(init_main,init_roberta)
+    #init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
     # Transformer
 
     #sta_ = ws.StockTwitsApi(init_main,init_roberta)

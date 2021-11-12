@@ -258,6 +258,9 @@ class RedditApi_():
                 if any(keyword in comment for keyword in keywords):
                     # remove all unescessary text (transform emoji, remove \n, remove other symbol like $)
                     tempo_comment = pm.text_cleanup(comment)
+                    # if it's empty after cleaning, just continue, don't save/analyse the comment
+                    if tempo_comment == '':
+                        break
                     reddit_dictionary[self.pv.columns_sentiment[0]] = tempo_comment
                     reddit_dictionary[self.pv.columns_sentiment[1]] = self.roberta.roberta_analysis(tempo_comment)
                     self.pv.pd_stock_sentiment = self.pv.pd_stock_sentiment.append\

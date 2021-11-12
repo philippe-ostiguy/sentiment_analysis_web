@@ -87,9 +87,8 @@ class StockTwitsApi():
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
         self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
-                                               date_=self.date_, end_point=self.stock_endpoint,
-                                               class_time=self.class_time, pause_time=self.init.pause_time,
-                                               date_to_search = self.date_to_search)
+                                               end_point=self.stock_endpoint, class_time=self.class_time,
+                                               pause_time=self.init.pause_time, date_to_search = self.date_to_search)
         return self.analyse_content()
 
     def convert_time(self):
@@ -121,7 +120,10 @@ class StockTwitsApi():
 
             #remove all unescessary text (emoji, \n, other symbol like $)
             twit_tempo = pm.text_cleanup(twit_tempo)
-            #writing the comments in the dictionary
+            #if it's empty after cleaning, just continue, don't save/analyse the comment
+            if twit_tempo == '':
+                continue
+            # writing the comments in the dictionary
             self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
             #writing the sentiment analysis result in the dictionary
             self.twit_dictionary[self.init.columns_sentiment[1]] = self.init_sentiment.roberta_analysis(twit_tempo)

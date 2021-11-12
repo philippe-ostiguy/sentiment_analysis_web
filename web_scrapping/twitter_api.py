@@ -78,33 +78,33 @@ class TwitsApi():
 
         self.buffer_date_ = 10
         self.date_ = ''  # date if different from today in the Xpath
+        self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
         self.twits = ""  # contains the twit fetched from Twitter (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
 
     def __call__(self):
 
-        self.convert_time()
-        self.date_to_search = '//a[@class="{}" and @aria-label="{}"]'.format(self.class_time, self.date_)
+        self.buffer_date()
+        self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
 
-        self.twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return, date_=self.date_,
+        self.twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
                                                end_point=self.stock_endpoint,class_time=self.class_time,
                                                pause_time=self.init.pause_time,date_to_search = self.date_to_search)
         return self.analyse_content()
 
-    def convert_time(self):
+    def convert_time(self,iteration):
         """Method to convert time readable in the Xpath in Selenium.
         """
 
         now = datetime.now()  # get the current datetime, this is our starting point
         # datetime according to the number of the days ago we want
-        start_time = now - timedelta(hours=self.init.time_ago)
+        start_time = now - timedelta(hours=(self.init.time_ago + iteration - 24))
 
         # Write the day in Xpath format for Twitter
         text = [str(start_time.strftime('%b')), str(start_time.day)]
         self.date_ = (' '.join(text))
-        t = 5
 
     def buffer_date(self):
         """ Method to make a list of date we can click on. It's a buffer to make sure that we don't scroll forever.
@@ -112,15 +112,17 @@ class TwitsApi():
          on November 10. It depends on the size of the buffer `self.buffer_date_`
         """
 
-        i = 1
-        while i < self.buffer_date_:
-            if i == 1:
-                self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more reply', '")'])
-            else:
-                self.rejected_replies_list += ''.join(
-                    [' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
+        iteration = 1
+        while iteration < self.buffer_date_:
 
-            i += 1
+            self.convert_time(iteration*24) #multiply iteration by 24 to have in day
+            if iteration == 1:
+                self.date__ += ''.join(['@aria-label = ','"', self.date_, '"'])
+            else:
+                self.date__ += ''.join([' or @aria-label = ','"', self.date_, '"'])
+
+            iteration += 1
+
 
     def analyse_content(self):
         """Method to analyse content on Twitter"""
@@ -128,7 +130,11 @@ class TwitsApi():
         for twit in self.twits:
 
             # remove all unescessary text (emoji, \n, other symbol like $)
-            twit_tempo = pm.text_cleanup(twit_tempo)
+            t = twit.text
+            twit_tempo = pm.text_cleanup(twit.text)
+            #if it's empty after cleaning, just continue, don't save/analyse the comment
+            if twit_tempo == '':
+                continue
             # writing the comments in the dictionary
             self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
             # writing the sentiment analysis result in the dictionary
