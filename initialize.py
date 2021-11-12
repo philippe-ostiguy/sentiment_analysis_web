@@ -91,10 +91,13 @@ class InitProject():
             pause time when scrolling down the pageand pause between manipulations on browser to load. 
             We may need to increase this value as the page may be loaded at different time interval and needs to be 
             long enough :  https://selenium-python.readthedocs.io/waits.html
+        `self.comment_source` : list
+            source of comments/twits
         """
 
         #list of variables we can change ourself
-        self.columns_sentiment = ['text','probability','directional']
+        self.columns_sentiment = ['text','probability','directional','source']
+        self.comment_source = ['reddit','stocktwit','twitter']
         self.time_ago = 24
         self.pause_time = 1
 

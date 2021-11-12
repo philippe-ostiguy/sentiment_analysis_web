@@ -89,7 +89,7 @@ class StockTwitsApi():
         self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
                                                end_point=self.stock_endpoint, class_time=self.class_time,
                                                pause_time=self.init.pause_time, date_to_search = self.date_to_search)
-        return self.analyse_content()
+        return self.write_values()
 
     def convert_time(self):
         """Method to convert time readable in the Xpath in Selenium.
@@ -102,8 +102,8 @@ class StockTwitsApi():
         text = [str(start_time.month), str(start_time.day),start_time.strftime('%y')]
         self.date_ = ('/'.join(text))
 
-    def analyse_content(self):
-        """Method to analyse content on stocktwits"""
+    def write_values(self):
+        """Method to write values (sentiment, comments) in the Pandas Dataframe"""
 
         for twit in self.stock_twits:
             # keep the text after the symbol which is the opinion expressed
@@ -127,7 +127,7 @@ class StockTwitsApi():
             self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
             #writing the sentiment analysis result in the dictionary
             self.twit_dictionary[self.init.columns_sentiment[1]] = self.init_sentiment.roberta_analysis(twit_tempo)
-
+            self.twit_dictionary[self.init.columns_sentiment[3]] = self.init.comment_source[1]
 
             directional = re.search('\n(.*)\n', twit.text) #searching for 'bearish' or 'bullish' in the twit
             #If 'Bullish' or 'bearish', set the column 'directional to 'bullish or 'bearish accordindly.

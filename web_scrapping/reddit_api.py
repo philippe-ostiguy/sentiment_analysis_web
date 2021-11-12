@@ -143,7 +143,7 @@ class RedditApi_():
         self.rejected_replies()
         self.get_posts()
         self.scroll_to_end()
-        return self.analyse_content()
+        return self.write_values()
     
 
     def get_posts(self):
@@ -243,30 +243,34 @@ class RedditApi_():
                 func(self)
                 self.reddit_comments += [comment.text for comment in self.pv.driver.find_elements_by_xpath(
                     "//div[contains(@class,'{}')]".format(self.class_comments))]
+                break
         return wrapper_
 
-    def analyse_content(self):
-        """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
-         (-1 being the most negative and +1 being the most positive """
+    def loop_comments(func):
+        """Decorator to loop throught the comments that we webscrap"""
 
-        reddit_dictionary = {}  # dictionary with information from twits
-        i = 0
-        for comment in self.reddit_comments:
-            # check if the post contains the stock (keywords) we are looking for
-            for stock,keywords in self.pv.stock_dictionnary.items():
-                #check if the comment contains at least one of the keyword
-                if any(keyword in comment for keyword in keywords):
-                    # remove all unescessary text (transform emoji, remove \n, remove other symbol like $)
-                    tempo_comment = pm.text_cleanup(comment)
-                    # if it's empty after cleaning, just continue, don't save/analyse the comment
-                    if tempo_comment == '':
-                        break
-                    reddit_dictionary[self.pv.columns_sentiment[0]] = tempo_comment
-                    reddit_dictionary[self.pv.columns_sentiment[1]] = self.roberta.roberta_analysis(tempo_comment)
-                    self.pv.pd_stock_sentiment = self.pv.pd_stock_sentiment.append\
-                        (reddit_dictionary, ignore_index=True)
-                    break  # not analyzing the same post twice (in case we have more than 1 keyword)
-        return self.pv.pd_stock_sentiment
+        def wrapper_(self):
+
+            reddit_dictionary = {}  # dictionary with information from twits
+            for comment in self.reddit_comments:
+                # check if the post contains the stock (keywords) we are looking for
+                for stock,keywords in self.pv.stock_dictionnary.items():
+                    #check if the comment contains at least one of the keyword
+                    if any(keyword in comment for keyword in keywords):
+
+                        func(self,comment,reddit_dictionary)
+                        break # not analyzing the same post twice (in case we have more than 1 keyword)
+            return self.pv.pd_stock_sentiment
+        return wrapper_
+
+    @loop_comments
+    def write_values(self,comment,reddit_dictionary):
+        """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
+         (-1 being the most negative and +1 being the most positive and write different values in the
+         pandas DataFrame `self.pd_stock_sentiment`"""
+
+        self.pv.pd_stock_sentiment = pm.write_values(comment = comment,dict_ = reddit_dictionary,pv = self.pv,
+                                                     model = self.roberta,source = 0)
 
     @loop_reddit_post
     def scroll_to_end(self):
@@ -312,4 +316,5 @@ class RedditApi_():
                 pass
 
             i+=1
-
+            if i ==2:
+                break

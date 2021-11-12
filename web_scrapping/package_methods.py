@@ -119,3 +119,20 @@ def scroll_to_value(**kwargs):
 
         except TimeoutException:
             pass
+
+def write_values(comment, dict_, pv, model,source):
+    """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
+     (-1 being the most negative and +1 being the most positive and write different values in the
+     pandas DataFrame `self.pd_stock_sentiment`"""
+
+    # remove all unescessary text (transform emoji, remove \n, remove other symbol like $)
+    tempo_comment = text_cleanup(comment)
+    # if it's empty after cleaning, just continue, don't save/analyse the comment
+    if not tempo_comment == '':
+        dict_[pv.columns_sentiment[0]] = tempo_comment
+        dict_[pv.columns_sentiment[1]] = model.roberta_analysis(tempo_comment)
+        dict_[pv.columns_sentiment[3]] = pv.comment_source[source]
+        pv.pd_stock_sentiment = pv.pd_stock_sentiment.append \
+            (dict_, ignore_index=True)
+
+    return pv.pd_stock_sentiment

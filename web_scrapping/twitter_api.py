@@ -92,7 +92,7 @@ class TwitsApi():
         self.twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
                                                end_point=self.stock_endpoint,class_time=self.class_time,
                                                pause_time=self.init.pause_time,date_to_search = self.date_to_search)
-        return self.analyse_content()
+        return self.write_values()
 
     def convert_time(self,iteration):
         """Method to convert time readable in the Xpath in Selenium.
@@ -124,8 +124,8 @@ class TwitsApi():
             iteration += 1
 
 
-    def analyse_content(self):
-        """Method to analyse content on Twitter"""
+    def write_values(self):
+        """Method to write values (sentiment, comments) in the Pandas Dataframe"""
 
         for twit in self.twits:
 
@@ -139,6 +139,7 @@ class TwitsApi():
             self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
             # writing the sentiment analysis result in the dictionary
             self.twit_dictionary[self.init.columns_sentiment[1]] = self.init_sentiment.roberta_analysis(twit_tempo)
+            self.twit_dictionary[self.init.columns_sentiment[3]] = self.init.comment_source[2]
 
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append(self.twit_dictionary, ignore_index=True)
 
