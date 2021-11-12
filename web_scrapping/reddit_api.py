@@ -68,9 +68,6 @@ class RedditApi_():
             for 'TSLA' (searching is case-sensitive).
             The second keywords and more can be either capital letter or not. We search for both here.
             Ex : keyword is 'Tesla', we will also search for 'tesla'.
-        `self.limit_comments` : int
-            maximum number of comments to fetch (default is 100. In general, max number allowed is 1000 :
-            https://praw.readthedocs.io/en/latest/code_overview/other/listinggenerator.html#praw.models.ListingGenerator)
         `self.time_ago` : int
             Number of hours in the past we want to webscrape the data. This value must be 1 hour or more as the time
             format in Reddit is in hours (under 24 hours) and days (24 hours or more after the post was created).
@@ -79,13 +76,12 @@ class RedditApi_():
             The program is made to search the last 24 hours and
             it operates this way. Ex: the function `self.set_time_ago()` changes `self.time_ago` depending if we are on
             Monday or on a US Stock holiday and will fetch accordingly.
+        `self.pause_time` : long
+            pause time when scrolling down the pageand pause between manipulations on browser to load.
+            We may need to increase this value as the page may be loaded at different time interval and needs to be
+            long enough :  https://selenium-python.readthedocs.io/waits.html
         `self.api_endpoint` : str
             API's endpoint parameter
-        `self.driver_file_name` : str
-            Chrome driver's file name
-        `self.scroll_pause_time` : long
-            pause time when scrolling down the page. We may need to increase this value as the page may be loaded
-            at different time interval and needs to be long enough :  https://selenium-python.readthedocs.io/waits.html
         `self.class_time` : str
             Name of the class in reddit containing the published time of a reddit post
         `self.class_comments` : str
@@ -94,15 +90,11 @@ class RedditApi_():
             Name of the class in Reddit for the more comments button (load more comments)
         `self.reddit_endpoint` : str
             Endpoint of the stock we want to webscrap
-        `self.number_of_submissions` : int
-            number of submissions in reddit we want to webscrap data
         `self.min_replies` : int
             minimum of reply in reddit to click on it. Ex : we don't want to click on all the '1 more reply' as it takes
             times
         `self.date_` : str
             date until which we webscrap data
-        `self.class_submission_time` : str
-            class to get the time a submission was published
         `self.buffer_time_size` : int
             buffer (number) to fetch the dates we want. Ex :  If the buffer is 3, and `self.time_ago` is 5 hours,
             it will also stop fetching the data if it sees 6 hours or 7 hours in the post and set the value
@@ -127,16 +119,14 @@ class RedditApi_():
         self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
         self.us_holidays = self.pv.us_holidays #list of US Stock Holiday
         self.time_ago = self.pv.time_ago
-        self.stock_dictionnary = self.pv.stock_dictionnary
+        self.stock_dictionnary = self.pv.stock_dictionnary #stock with keyword to look in reddit
         self.driver = self.pv.driver #driver to webscrap data on Selenium
-
+        self.pause_time = self.pv.scroll_pause_time #pausing time when loading page (browser)
+        
         self.date_ = ""
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
         self.tempo_endpoint = ''  # Temporary endpoint - we add the ticker we want to webscrap at the end of
-        # self.stock_endpoint
-        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../chromedriver')
-        # self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'geckodriver')
-        self.scroll_pause_time = 1
+
 
         self.daily_discussion_url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair_name%3A%22Daily' \
                                     '%20Discussion%22&restrict_sr=1&sr_nsfw=&sort=new'
@@ -147,10 +137,8 @@ class RedditApi_():
                                     #False per default.
 
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU'  # time
-        self.class_time_whole = '_1a_HxF03jCyxnx706hQmJR'  # class time with more details
         self.class_more_comments = '_3sf33-9rVAO_v4y0pIW_CH'
         self.class_comments = '_3cjCphgls6DH-irkVaA0GM'  # post
-        self.class_submission_time = '_3jOxDPIQ0KaOWpzvSQo-1s'
         self.reddit_posts_url = [] #list of url posts we will webscrap data from on Reddit
         self.reddit_comments= [] #list that contains the comments (text only)
 
@@ -166,9 +154,8 @@ class RedditApi_():
 
         self.set_time_ago()
         self.time_to_search()
-        self.init_driver()
-        self.get_posts()
         self.rejected_replies()
+        self.get_posts()
         self.scroll_to_end()
         return self.analyse_content()
 
@@ -301,21 +288,9 @@ class RedditApi_():
                     [' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
 
             i += 1
-    """
-    def loop_reddit_post(self):
-        Method to web-scrap content on Reddit using Selenium
-
-        for url_post in self.reddit_posts_url:
-            self.driver.get(url_post)
-            time.sleep(2)
-            self.scroll_to_end()
-            self.reddit_comments += [comment.text for comment in self.driver.find_elements_by_xpath(
-                "//div[contains(@class,'{}')]".format(self.class_comments))]
-            break
-    """
 
     def loop_reddit_post(func):
-        """ Decorator that web-scrap content on all reddit posts that we choose using Selenium" """
+        """ Decorator that web-scrap content on all reddit posts that we choose using Selenium """
 
         def wrapper_(self):
 
@@ -357,7 +332,7 @@ class RedditApi_():
         - We don't fetch second-level comments (comments under first-level comment) as it will take to much time)
         """
 
-        wait = WebDriverWait(self.driver, self.scroll_pause_time)
+        wait = WebDriverWait(self.driver, self.pause_time)
         element = None
         screen_height = self.driver.execute_script("return window.screen.height;")  # return window screen height
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \

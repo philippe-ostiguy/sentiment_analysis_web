@@ -84,3 +84,31 @@ def text_cleanup(text_to_clean):
     text_to_clean = text_to_clean.replace("  ", " ")
 
     return text_to_clean
+
+def webscrap_content(**kwargs):
+    """Method to web-scrap content on Stocktwits
+    """
+
+    kwargs['driver'].get(self.stock_endpoint)
+    time.sleep(kwargs['pause_time'])
+    scroll_to_value(**kwargs)
+    time.sleep(kwargs['pause_time'])
+    return kwargs['driver'].find_elements_by_xpath(
+        "//div[@class='{}']".format(kwargs['class_twits']))
+
+def scroll_to_value(**kwargs):
+    """Method that scrolls until we find the value, then stops. It search for a date and the class containg
+    the date"""
+
+
+    wait = WebDriverWait(kwargs['driver'], kwargs['pause_time'])
+    element_ = None
+    value_to_search =  '//a[@class="{}" and contains(text(),"{}")]'.format(kwargs['class_time'],kwargs['date_'])
+    while not element_:
+
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        try:
+            element_ = wait.until(EC.presence_of_element_located((By.XPATH,value_to_search)))
+
+        except TimeoutException:
+            pass

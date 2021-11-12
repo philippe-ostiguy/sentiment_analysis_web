@@ -82,15 +82,20 @@ class InitProject():
             List that contains the US Stock Holiday
         `self.pd_stock_sentiment` : pandas.DataFrame
             Pandas DataFrame that contains the sentiment/mood for each stock we are webscrapping on social media
-        `self.pv.stock_dictionnary` : dict
+        `self.stock_dictionnary` : dict
             dictionary of stocks (keys) with keywords associated with them (values) that we are looking in the post
-
+        `self.pause_time` : long
+            pause time when scrolling down the pageand pause between manipulations on browser to load. 
+            We may need to increase this value as the page may be loaded at different time interval and needs to be 
+            long enough :  https://selenium-python.readthedocs.io/waits.html
         """
 
         #list of variables we can change ourself
         self.columns_sentiment = ['text','probability','directional']
         self.time_ago = 24
+        self.pause_time = 1
 
+        
         # list of variables that we should not set ourself
         self.us_holidays = []
         self.stock_dictionnary = {'Tsla': ['TSLA', 'Tesla', 'tesla']} #this will be changed later and set

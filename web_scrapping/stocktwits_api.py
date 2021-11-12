@@ -43,7 +43,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
+import web_scrapping.package_methods as pm
 
 class StockTwitsApi():
     """Class to make API Calls to the Stocktwits API
@@ -65,8 +65,8 @@ class StockTwitsApi():
             list containing the parameters we want to get from the API response
         `self.driver_file_name` : str
             Chrome driver's file name
-        `self.scroll_pause_time` : long
-            pause time when scrolling down the page
+        `self.pause_time` : long
+            pause time when scrolling down the page and pause between manipulations on browser to load
         `self.class_time` : str
             Name of the class in Stocktwits containing the published time of a twit
         `self.class_twits` : str
@@ -89,11 +89,11 @@ class StockTwitsApi():
         self.init_sentiment = init_sentiment 
         self.time_ago = self.init.time_ago
         self.driver = self.init.driver #driver to webscrap data on Selenium
-
+        self.pause_time = self.init.pause_time
+        
         self.stock_endpoint = 'https://stocktwits.com/symbol/' + 'gib'
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../chromedriver')
         self.response_parameters = ['symbol']
-        self.scroll_pause_time = 1
         self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S' #time
         self.class_twits = 'st_29E11sZ st_jGV698i st_1GuPg4J st_qEtgVMo st_2uhTU4W'
         self.class_directional = 'lib_XwnOHoV lib_3UzYkI9 lib_lPsmyQd lib_2TK8fEo' #bull or bear
@@ -105,8 +105,10 @@ class StockTwitsApi():
         
     def __call__(self):
 
+
         self.convert_time()
-        self.webscrap_content()
+        self.stock_twits = pm.webscrap_content(driver=self.driver,class_twits=self.class_twits,
+                                               class_time=self.class_time,date_=self.date_,pause_time=self.pause_time)
         return self.analyse_content()
 
     def convert_time(self):
@@ -119,17 +121,6 @@ class StockTwitsApi():
         #Write the day in Xpath format for stocktwits
         text = [str(start_time.month), str(start_time.day),start_time.strftime('%y')]
         self.date_ = ('/'.join(text))
-
-    def webscrap_content(self):
-        """Method to web-scrap content on Stocktwits
-        """
-
-        self.driver.get(self.stock_endpoint)
-        time.sleep(1)
-        self.scroll_to_value()
-        time.sleep(1)
-        self.stock_twits = self.driver.find_elements_by_xpath(
-            "//div[@class='{}']".format(self.class_twits))
 
     def analyse_content(self):
         """Method to analyse content on stocktwits"""
@@ -170,21 +161,3 @@ class StockTwitsApi():
 
             
         return self.init.pd_stock_sentiment
-
-    def scroll_to_value(self):
-        """Method that scrolls until we find the value, then stops. It search for a date and the class containg
-        the date"""
-
-
-        wait = WebDriverWait(self.driver, self.scroll_pause_time)
-        element_ = None
-        value_to_search =  '//a[@class="{}" and contains(text(),"{}")]'.format(self.class_time,self.date_)
-        while not element_:
-
-            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            try:
-                element_ = wait.until(EC.presence_of_element_located((By.XPATH,value_to_search)))
-
-            except TimeoutException:
-                pass
-
