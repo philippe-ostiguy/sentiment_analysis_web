@@ -34,6 +34,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from initialize import InitProject
 from datetime import datetime, timedelta, time, date
+import perform_stats as ps
 
 class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary
@@ -75,18 +76,27 @@ if __name__ == '__main__':
     init_main()
 
     #initialize the Roberta sentiment analysis
-    init_roberta = sa.TwitAnalysis(init_main)
-    init_roberta() #built-in call method to initialize the model
+    #init_roberta = sa.TwitAnalysis(init_main)
+    #init_roberta() #built-in call method to initialize the model
 
     # fetching the data on social media and twitter
+    #Reddit
     #ra_ = ws.RedditApi_(init_main,init_roberta)
     #init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
     # Transformer
 
-    sta_ = ws.StockTwitsApi(init_main,init_roberta)
-    init_main.pd_stock_sentiment =  sta_()
+    #Stocktwits
+    #sta_ = ws.StockTwitsApi(init_main,init_roberta)
+    #init_main.pd_stock_sentiment =  sta_()
+
+    #Twitter
     #ta = ws.TwitsApi(init_main,init_roberta)
     #init_main.pd_stock_sentiment = ta()
+
+    cm = ps.CalculateMetrics(init_main)
+    init_main = cm()
+
+
     t = 5
 
 

@@ -93,10 +93,14 @@ class InitProject():
             long enough :  https://selenium-python.readthedocs.io/waits.html
         `self.comment_source` : list
             source of comments/twits that we analyse the sentiment
+        `self.pd_metrics` : pandas.DataFrame
+            Pandas Dataframe with metrics from the results. Ex: Nb of comments, average sentiment per social media, etc.
         """
 
         #list of variables we can change ourself
         self.columns_sentiment = ['text','probability','directional','source']
+        self.columns_metrics = ["Sentiment average for ","Total sentiment average", "Nb of comments for ",
+                                "Total number of comments", "Stocktwits sentiment accuracy"]
         self.comment_source = ['reddit','stocktwit','twitter']
         self.time_ago = 24
         self.pause_time = 2
@@ -108,8 +112,9 @@ class InitProject():
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
         self.driver = "" #driver in Selenium to webscrap data
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
-        self.check_weekend = False  # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
-        # False per default.
+        # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
+        self.check_weekend = False # False per default.
+        self.pd_metrics = pd.DataFrame
 
     def __call__(self):
 
