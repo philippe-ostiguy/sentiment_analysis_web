@@ -60,12 +60,10 @@ class TwitAnalysis():
         #`self.dict_sentiment` : dict
          #   it's the pandas.DataFrame `self.pd_stock_sentiment` but in dictionary to loop faster
 
-
         self.sentiment_analyser = pipeline("sentiment-analysis")
         self.init = init #class that initialises global variables for the project (and in the darkness bind them...
                         #well, not really)
         #self.dict_sentiment = {}
-
 
     def __call__(self):
         """Built-in `__call__` method to initialize the model"""

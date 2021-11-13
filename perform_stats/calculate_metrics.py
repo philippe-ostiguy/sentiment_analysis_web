@@ -37,50 +37,46 @@ class CalculateMetrics():
 
         # We should touch these data. They come from the classes where we initialize the data
         self.init = init  # variable for the class containing the global variables for the project
-        self.dict_ = {} #we put temporarily the results (mood, tedt) from `self.pd_stock_sentiment` in this dictionary
-                        #to make manipulations faster (manipulations on dictionaries are faster than on pandas
-                        # Dataframe)
-        self.pd_subset
+        self.pd_subset = pd.DataFrame()
 
     def __call__(self):
-        students = [('jack', 'Apples', 34),
-                    ('Riti', 'Mangos', 31),
-                    ('Aadi', 'Grapes', 30),
-                    ('Sonia', 'Apples', 32),
-                    ('Lucy', 'Mangos', 33),
-                    ('Mike', 'Apples', 35)
-                    ]
-        # Create a DataFrame object
-        self.dfObj = pd.DataFrame(students, columns=['Name', 'Product', 'Sale'])
 
-        self.pd_to_dict()
-
+        self.nb_comments()
+        self.average_sentiment()
+        self.total_comments()
+        self.total_average_sentiment()
         return self.init
 
-    def pd_to_dict(self):
-        t = 5
+    def loop_source(func):
+        """Decorator to loop throught the different sources where we webscrap the data"""
 
-    def nb_comments(self):
-        self.pd_subset = self.dfObj[self.dfObj['Product'] == 'Apples']
-        self.lenght = len(self.pd_subset.index)
-        self.mean = self.pd_subset['Sale'].mean()
-        t  = 5
+        def wrapper_(self):
+            for source in self.init.comment_source:
+                self.pd_subset = self.init.pd_stock_sentiment[self.init.pd_stock_sentiment
+                                                              [self.init.columns_sentiment[3]]==source]
+                func(self,source)
+            return None
+        return wrapper_
 
+    @loop_source
+    def nb_comments(self,source):
+        """Number of twits/comments per source (reddit, twitter, stocktwits)"""
 
+        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0],self.init.columns_metrics[3] + source] \
+            = int(len(self.pd_subset.index))
 
+    @loop_source
+    def average_sentiment(self,source):
+        """Average sentiment mood per source (reddit, twitter, stocktwits)"""
+        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0], self.init.columns_metrics[2] + source] \
+            = self.pd_subset[self.init.columns_sentiment[1]].mean()
 
-        """
-        self.columns_sentiment = ['text','probability','directional','source']
-        self.columns_metrics = ["Sentiment average for ","Total sentiment average", "Nb of comments for ",
-                                "Total number of comments", "Stocktwits sentiment accuracy"]
-        self.comment_source = ['reddit','stocktwit','twitter']
-        self.time_ago = 24
-        self.pause_time = 2
+    def total_comments(self):
+        """return the total number of comments/twits for all the source"""
+        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0], self.init.columns_metrics[1]] \
+            = int(len(self.init.pd_stock_sentiment))
 
-        # list of variables that we should not set ourself
-        self.us_holidays = []
-        self.stock_dictionnary = {'Tsla': ['TSLA', 'Tesla', 'tesla']} #this will be changed later and set
-                                                                            #automatically
-        self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
-        """
-
+    def total_average_sentiment(self):
+        """return the total average sentiment mood for all the source"""
+        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0], self.init.columns_metrics[0]] \
+            = self.init.pd_stock_sentiment[self.init.columns_sentiment[1]].mean()

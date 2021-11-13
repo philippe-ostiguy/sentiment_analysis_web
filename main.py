@@ -76,8 +76,8 @@ if __name__ == '__main__':
     init_main()
 
     #initialize the Roberta sentiment analysis
-    #init_roberta = sa.TwitAnalysis(init_main)
-    #init_roberta() #built-in call method to initialize the model
+    init_roberta = sa.TwitAnalysis(init_main)
+    init_roberta() #built-in call method to initialize the model
 
     # fetching the data on social media and twitter
     #Reddit
@@ -90,8 +90,8 @@ if __name__ == '__main__':
     #init_main.pd_stock_sentiment =  sta_()
 
     #Twitter
-    #ta = ws.TwitsApi(init_main,init_roberta)
-    #init_main.pd_stock_sentiment = ta()
+    ta = ws.TwitsApi(init_main,init_roberta)
+    init_main.pd_stock_sentiment = ta()
 
     cm = ps.CalculateMetrics(init_main)
     init_main = cm()

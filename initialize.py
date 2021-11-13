@@ -97,10 +97,11 @@ class InitProject():
             Pandas Dataframe with metrics from the results. Ex: Nb of comments, average sentiment per social media, etc.
         """
 
-        #list of variables we can change ourself
+        #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
+        #number of a liste in the code to get the value
         self.columns_sentiment = ['text','probability','directional','source']
-        self.columns_metrics = ["Sentiment average for ","Total sentiment average", "Nb of comments for ",
-                                "Total number of comments", "Stocktwits sentiment accuracy"]
+        self.columns_metrics = ["Total average sentiment","Total number of comments","Average sentiment for ",
+                                "Nb of comments for ", "Stocktwits sentiment accuracy"]
         self.comment_source = ['reddit','stocktwit','twitter']
         self.time_ago = 24
         self.pause_time = 2
@@ -114,7 +115,7 @@ class InitProject():
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
         self.check_weekend = False # False per default.
-        self.pd_metrics = pd.DataFrame
+        self.pd_metrics = pd.DataFrame()
 
     def __call__(self):
 
