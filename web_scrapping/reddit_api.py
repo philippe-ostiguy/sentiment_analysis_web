@@ -60,7 +60,7 @@ class RedditApi_():
 
         Attributes
         ----------
-        `self.pv.stock_dictionary` : dict
+        `self.init.stock_dictionary` : dict
             name of the stock we want to analyse the data with the keywords associated with that stock.
             Ex : { Tesla : ['TSLA', 'tesla'] }. The stock we are seaching data for is 'Tesla'. The first value for each
             stock (key) is the ticker which should be in capital letter only. Ex: Keyword is 'TSLA' we will only search
@@ -108,7 +108,7 @@ class RedditApi_():
         super().__init__()
 
         #We should touch these data. They come from the classes where we initialize the data
-        self.pv = init #giving the values of class `init` to `self.pv` variable (pv for project variables)
+        self.init = init #giving the values of class `init` to `self.init` variable (pv for project variables)
         self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
 
 
@@ -159,19 +159,19 @@ class RedditApi_():
 
         #save the posts we will webscrap data from.
         #This if for the posts that we webscrap data from Tuesday to Friday
-        self.pv.driver.get(self.daily_discussion_url)
+        self.init.driver.get(self.daily_discussion_url)
         time.sleep(2)
         element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
         #posts url
         self.reddit_posts_url += [post.get_attribute("href") for post in
-                                   self.pv.driver.find_elements_by_xpath(element_to_search)]
+                                   self.init.driver.find_elements_by_xpath(element_to_search)]
 
-        if self.pv.check_weekend:
-            self.pv.driver.get(self.weekend_discussion_url)
+        if self.init.check_weekend:
+            self.init.driver.get(self.weekend_discussion_url)
             time.sleep(2)
             element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post, self.date__)
             self.reddit_posts_url += [post.get_attribute("href") for post in
-                                       self.pv.driver.find_elements_by_xpath(element_to_search)]
+                                       self.init.driver.find_elements_by_xpath(element_to_search)]
 
     def time_to_search(self):
         """Method that set the variable `self.date__` depending on  how far we need data `self.time_ago`.
@@ -196,7 +196,7 @@ class RedditApi_():
         i = 1
         j = 1
         #writing time for hours and days
-        while (i- 1)  < self.pv.time_ago:
+        while (i- 1)  < self.init.time_ago:
             str_tempo = str(i)
             #write time in hours
             if i == 1:
@@ -238,10 +238,10 @@ class RedditApi_():
         def wrapper_(self):
 
             for url_post in self.reddit_posts_url:
-                self.pv.driver.get(url_post)
+                self.init.driver.get(url_post)
                 time.sleep(2)
                 func(self)
-                self.reddit_comments += [comment.text for comment in self.pv.driver.find_elements_by_xpath(
+                self.reddit_comments += [comment.text for comment in self.init.driver.find_elements_by_xpath(
                     "//div[contains(@class,'{}')]".format(self.class_comments))]
                 break
         return wrapper_
@@ -254,15 +254,15 @@ class RedditApi_():
             reddit_dictionary = {}  # dictionary with information from twits
             for comment in self.reddit_comments:
                 # check if the post contains the stock (keywords) we are looking for
-                for stock,keywords in self.pv.stock_dictionnary.items():
+                for stock,keywords in self.init.stock_dictionnary.items():
                     #check if the comment contains at least one of the keyword
                     if any(keyword in comment for keyword in keywords):
 
                         func(self,comment,reddit_dictionary)
                         break # not analyzing the same post twice (in case we have more than 1 keyword)
-            self.pv.pd_stock_sentiment = self.pv.pd_stock_sentiment.drop_duplicates\
-                (subset=self.pv.columns_sentiment[0], keep="first")
-            return self.pv.pd_stock_sentiment
+            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
+                (subset=self.init.columns_sentiment[0], keep="first")
+            return self.init.pd_stock_sentiment
         return wrapper_
 
     @loop_comments
@@ -271,7 +271,7 @@ class RedditApi_():
          (-1 being the most negative and +1 being the most positive and write different values in the
          pandas DataFrame `self.pd_stock_sentiment`"""
 
-        self.pv.pd_stock_sentiment = pm.write_values(comment = comment,dict_ = reddit_dictionary,pv = self.pv,
+        self.init.pd_stock_sentiment = pm.write_values(comment = comment,dict_ = reddit_dictionary,pv = self.init,
                                                      model = self.roberta,source = 0)
 
     @loop_reddit_post
@@ -284,9 +284,9 @@ class RedditApi_():
         - We don't fetch second-level comments (comments under first-level comment) as it will take to much time)
         """
 
-        wait = WebDriverWait(self.pv.driver, self.pv.pause_time)
+        wait = WebDriverWait(self.init.driver, self.init.pause_time)
         element = None
-        screen_height = self.pv.driver.execute_script("return window.screen.height;")  # return window screen height
+        screen_height = self.init.driver.execute_script("return window.screen.height;")  # return window screen height
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
         i = 1
@@ -294,10 +294,10 @@ class RedditApi_():
         while not element:
 
             # go to section in window according to `i` and `screen_height`
-            self.pv.driver.execute_script("window.scrollTo(0, {screen_height}*{i});"
+            self.init.driver.execute_script("window.scrollTo(0, {screen_height}*{i});"
                                        .format(screen_height=screen_height, i=i))
             # return DOM body height
-            scroll_height = self.pv.driver.execute_script("return document.body.scrollHeight;")
+            scroll_height = self.init.driver.execute_script("return document.body.scrollHeight;")
 
             # check if we are a the end of the page
             if (screen_height) * i > scroll_height:

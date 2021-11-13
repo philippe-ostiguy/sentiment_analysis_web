@@ -67,8 +67,8 @@ class InitMain(InitProject):
             (datetime.now().day in [date_.day for date_ in self.us_holidays])):
             raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
 
-        if (datetime.today().weekday()  >= 5):
-            raise Exception("Current day is the weekend. The market is closed. The program will shut down")
+        #if (datetime.today().weekday()  >= 5):
+         #   raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
     init_main = InitMain()
@@ -83,10 +83,10 @@ if __name__ == '__main__':
     #init_main.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
     # Transformer
 
-    #sta_ = ws.StockTwitsApi(init_main,init_roberta)
-    #init_main.pd_stock_sentiment =  sta_()
-    ta = ws.TwitsApi(init_main,init_roberta)
-    init_main.pd_stock_sentiment = ta()
+    sta_ = ws.StockTwitsApi(init_main,init_roberta)
+    init_main.pd_stock_sentiment =  sta_()
+    #ta = ws.TwitsApi(init_main,init_roberta)
+    #init_main.pd_stock_sentiment = ta()
     t = 5
 
 

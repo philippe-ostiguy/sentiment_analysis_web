@@ -120,7 +120,6 @@ class TwitsApi():
                 self.date__ += ''.join(['@aria-label = ','"', self.date_, '"'])
             else:
                 self.date__ += ''.join([' or @aria-label = ','"', self.date_, '"'])
-
             iteration += 1
 
 
@@ -130,9 +129,8 @@ class TwitsApi():
         def wrapper_(self):
             for twit in self.twits:
                 func(self,twit.text)
-
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
-                (subset=self.pv.columns_sentiment[0], keep="first")
+                (subset=self.init.columns_sentiment[0], keep="first")
             return self.init.pd_stock_sentiment
         return wrapper_
 

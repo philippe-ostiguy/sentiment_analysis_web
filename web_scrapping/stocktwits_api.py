@@ -102,45 +102,44 @@ class StockTwitsApi():
         text = [str(start_time.month), str(start_time.day),start_time.strftime('%y')]
         self.date_ = ('/'.join(text))
 
-    def write_values(self):
-        """Method to write values (sentiment, comments) in the Pandas Dataframe"""
+    def loop_twits(func):
+        """Decorator to loop throught the comments that we webscrap"""
 
-        for twit in self.stock_twits:
-            # keep the text after the symbol which is the opinion expressed
-            bullish = 'Bullish'
-            bearish = 'Bearish'
+        def wrapper_(self):
+            for twit in self.stock_twits:
+                # keep the text after the symbol which is the opinion expressed
+                bullish = 'Bullish'
+                bearish = 'Bearish'
 
-            #check if it contains bullish or bearish or not in the class
-            #then we are able to extract the twit only
-            if bullish in twit.text or bearish in twit.text:
-                twit_tempo = twit.text.split('\n', 3)[3:][0]
+                # check if it contains bullish or bearish or not in the class
+                # then we are able to extract the twit only
+                if bullish in twit.text or bearish in twit.text:
+                    twit_tempo = twit.text.split('\n', 3)[3:][0]
 
-            else:
-                twit_tempo = twit.text.split('\n', 2)[2:][0]
+                else:
+                    twit_tempo = twit.text.split('\n', 2)[2:][0]
 
-            #remove all unescessary text (emoji, \n, other symbol like $)
-            twit_tempo = pm.text_cleanup(twit_tempo)
-            #if it's empty after cleaning, just continue, don't save/analyse the comment
-            if twit_tempo == '':
-                continue
-            # writing the comments in the dictionary
-            self.twit_dictionary[self.init.columns_sentiment[0]] = twit_tempo
-            #writing the sentiment analysis result in the dictionary
-            self.twit_dictionary[self.init.columns_sentiment[1]] = self.init_sentiment.roberta_analysis(twit_tempo)
-            self.twit_dictionary[self.init.columns_sentiment[3]] = self.init.comment_source[1]
+                directional = re.search('\n(.*)\n', twit.text)  # searching for 'bearish' or 'bullish' in the twit
+                # If 'Bullish' or 'bearish', set the column 'directional to 'bullish or 'bearish accordindly.
+                if (directional.group(1) == 'Bearish' or directional.group(1) == 'Bullish'):
+                    self.twit_dictionary[self.init.columns_sentiment[2]] = directional.group(1)
+                # If the directional is not mentioned, then `directional.group(1)` is the 'time_published'
+                else:
+                    self.twit_dictionary[self.init.columns_sentiment[2]] = ''
 
-            directional = re.search('\n(.*)\n', twit.text) #searching for 'bearish' or 'bullish' in the twit
-            #If 'Bullish' or 'bearish', set the column 'directional to 'bullish or 'bearish accordindly.
-            if (directional.group(1) == 'Bearish' or directional.group(1) == 'Bullish'):
-                self.twit_dictionary[self.init.columns_sentiment[2]] = directional.group(1)
+                func(self, twit_tempo)
 
-
-            #If the directional is not mentioned, then `directional.group(1)` is the 'time_published'
-            else:
-                self.twit_dictionary[self.init.columns_sentiment[2]] = ''
+            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
+                (subset=self.init.columns_sentiment[0], keep="first")
+            return self.init.pd_stock_sentiment
+        return wrapper_
 
 
-            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.append(self.twit_dictionary,ignore_index=True)
+    @loop_twits
+    def write_values(self,twit):
+        """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
+         (-1 being the most negative and +1 being the most positive and write different values in the
+         pandas DataFrame `self.pd_stock_sentiment`"""
 
-            
-        return self.init.pd_stock_sentiment
+        self.init.pd_stock_sentiment = pm.write_values(comment = twit,dict_ = self.twit_dictionary,pv = self.init,
+                                                     model = self.init_sentiment,source = 1)
