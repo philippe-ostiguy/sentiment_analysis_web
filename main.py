@@ -69,8 +69,8 @@ class InitMain(InitProject):
             (datetime.now().day in [date_.day for date_ in self.us_holidays])):
             raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
 
-        #if (datetime.today().weekday()  >= 5):
-         #   raise Exception("Current day is the weekend. The market is closed. The program will shut down")
+        if (datetime.today().weekday()  >= 5):
+            raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
     init = InitMain()
