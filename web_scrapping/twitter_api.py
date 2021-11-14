@@ -71,7 +71,8 @@ class TwitsApi():
         # variable for the class with the model/transformer to analyse twits/comments
         self.init_sentiment = init_sentiment
 
-        self.stock_endpoint = 'https://twitter.com/search?q=%24' + 'gib' + '&src=typed_query&f=live'
+        self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', list(self.init.current_stock.keys())[0],
+                                       '&src=typed_query&f=live'])
         self.class_time = 'css-4rbku5 css-18t94o4 css-901oao r-14j79pv r-1loqt21 r-1q142lx r-37j5jr r-a023e6 ' \
                           'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
         self.class_twits = 'css-901oao r-18jsvk2 r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0'

@@ -60,7 +60,7 @@ class RedditApi_():
 
         Attributes
         ----------
-        `self.init.stock_dictionary` : dict
+        `self.init.current_stock` : dict
             name of the stock we want to analyse the data with the keywords associated with that stock.
             Ex : { Tesla : ['TSLA', 'tesla'] }. The stock we are seaching data for is 'Tesla'. The first value for each
             stock (key) is the ticker which should be in capital letter only. Ex: Keyword is 'TSLA' we will only search
@@ -254,7 +254,7 @@ class RedditApi_():
             reddit_dictionary = {}  # dictionary with information from twits
             for comment in self.reddit_comments:
                 # check if the post contains the stock (keywords) we are looking for
-                for stock,keywords in self.init.stock_dictionnary.items():
+                for stock,keywords in self.init.current_stock.items():
                     #check if the comment contains at least one of the keyword
                     if any(keyword in comment for keyword in keywords):
 

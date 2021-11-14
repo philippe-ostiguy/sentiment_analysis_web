@@ -71,6 +71,8 @@ class StockTwitsApi():
         self.init_sentiment = init_sentiment
 
         self.stock_endpoint = 'https://stocktwits.com/symbol/' + 'gib'
+        self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/', list(self.init.current_stock.keys())[0]])
+
         self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S' #time
         self.class_twits = 'st_29E11sZ st_jGV698i st_1GuPg4J st_qEtgVMo st_2uhTU4W'
         self.class_directional = 'lib_XwnOHoV lib_3UzYkI9 lib_lPsmyQd lib_2TK8fEo' #bull or bear

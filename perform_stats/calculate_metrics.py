@@ -62,21 +62,21 @@ class CalculateMetrics():
     def nb_comments(self,source):
         """Number of twits/comments per source (reddit, twitter, stocktwits)"""
 
-        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0],self.init.columns_metrics[3] + source] \
+        self.init.pd_metrics.loc[list(self.init.current_stock.keys())[0],self.init.columns_metrics[3] + source] \
             = int(len(self.pd_subset.index))
 
     @loop_source
     def average_sentiment(self,source):
         """Average sentiment mood per source (reddit, twitter, stocktwits)"""
-        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0], self.init.columns_metrics[2] + source] \
+        self.init.pd_metrics.loc[list(self.init.current_stock.keys())[0], self.init.columns_metrics[2] + source] \
             = self.pd_subset[self.init.columns_sentiment[1]].mean()
 
     def total_comments(self):
         """return the total number of comments/twits for all the source"""
-        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0], self.init.columns_metrics[1]] \
+        self.init.pd_metrics.loc[list(self.init.current_stock.keys())[0], self.init.columns_metrics[1]] \
             = int(len(self.init.pd_stock_sentiment))
 
     def total_average_sentiment(self):
         """return the total average sentiment mood for all the source"""
-        self.init.pd_metrics.loc[list(self.init.stock_dictionnary.keys())[0], self.init.columns_metrics[0]] \
+        self.init.pd_metrics.loc[list(self.init.current_stock.keys())[0], self.init.columns_metrics[0]] \
             = self.init.pd_stock_sentiment[self.init.columns_sentiment[1]].mean()

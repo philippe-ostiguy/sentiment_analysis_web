@@ -83,10 +83,13 @@ class InitProject():
         `self.pd_stock_sentiment` : pandas.DataFrame
             Pandas DataFrame that contains the sentiment/mood for each stock we are webscrapping on social media
         `self.stock_dictionnary` : dict
-            dictionary of stocks (keys) with keywords associated with them (values) that we are looking in the post.
+            dictionary of stocks (ticker is the key) with keywords associated with them (item) that we are looking in
+            the post. The items are one list per stock (key). This is the whole list we want to webscrap
             For reddit, we are searching with the keywords (values), whereas in Stocktwits and Twitter only with the
             key (ticker). On twitter and stocktwits, URL are based on the 'ticker', ex :
             https://twitter.com/search?q=%24gib&src=typed_query&f=live. On Reddit, we search by keyword on a post
+        `self.current_stock` : dict
+            current dictionary of `self.stockdictionary` we are webscrapping data on the social media
         `self.pause_time` : long
             pause time when scrolling down the pageand pause between manipulations on browser to load. 
             We may need to increase this value as the page may be loaded at different time interval and needs to be 
@@ -95,6 +98,8 @@ class InitProject():
             source of comments/twits that we analyse the sentiment
         `self.pd_metrics` : pandas.DataFrame
             Pandas Dataframe with metrics from the results. Ex: Nb of comments, average sentiment per social media, etc.
+        `self.keywords_to_remove` : list of keyword to remove when we search for a stock on Reddit. Ex: we know that
+            'Apple' is named 'Apple Inc.'. We want to remove the 'Inc' so that we only search for 'Apple' on reddit
         """
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
@@ -103,14 +108,14 @@ class InitProject():
         self.columns_metrics = ["Total average sentiment","Total number of comments","Average sentiment for ",
                                 "Nb of comments for ", "Stocktwits sentiment accuracy"]
         self.comment_source = ['reddit','stocktwit','twitter']
-        self.keywords_to_remove = ['Inc','INC','Inc.','Corp',]
-        self.time_ago = 168
+        self.keywords_to_remove = [' Inc.',' INC',' Inc', ' Corporation', ' Corp.', ' Corp', ' Co', ' Ltd', ' ltd',',']
+        self.time_ago = 24
         self.pause_time = 2
 
         # list of variables that we should not set ourself
         self.us_holidays = []
-        self.stock_dictionnary = {'Tsla': ['TSLA', 'Tesla', 'tesla']} #this will be changed later and set
-                                                                            #automatically
+        self.stock_dictionnary = {} #this will be changed later and set automatically
+        self.current_stock = {}
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
         self.driver = "" #driver in Selenium to webscrap data
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')

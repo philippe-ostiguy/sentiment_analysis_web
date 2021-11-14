@@ -27,7 +27,7 @@
 """Module to determine the stock we want to webscrap the data from"""
 
 import requests
-import pandas as pd
+import string
 
 class StockToTrade():
     """Class to decide which stock we webscrap data"""
@@ -38,8 +38,6 @@ class StockToTrade():
         ----------
         `self.stocktwit_trending` : str
             Stockwit API's endpoint to get the trending stocks
-        `self.response_parameters` : list
-            list containing the parameters we want to get from the API response
         `self.nb_trending` : int
             nb of trennding stocks we want to webscrap from stocktwits
 
@@ -49,14 +47,14 @@ class StockToTrade():
             class from the module `initialize.py` that initializes global variables for the project
         """
 
-        self.response_parameters = ['symbol']
         self.nb_trending = 10
         self.stocktwit_trending = 'https://api.stocktwits.com/api/2/trending/symbols/equities.json'
         self.init = init
-        self.trending_stocks = pd.DataFrame()
+
 
     def __call__(self):
         self.get_trending()
+        t = 5
 
     def get_trending(self):
         """Function to get the most trending stock on Stock Twits
@@ -64,16 +62,51 @@ class StockToTrade():
         """
 
         response = requests.get(self.stocktwit_trending)
-
         i = 0
+
         for stock in response.json()['symbols']:
-            row = self.get_data(stock,self.response_parameters)
-            self.trending_stocks = self.trending_stocks.append(row, ignore_index=True)
+            symbol = self.get_data(stock,['symbol'])
+            stock_name =  self.get_data(stock,['title'])
+            self.init.stock_dictionnary[symbol] = self.adjust_keywords(symbol,stock_name)
+            #self.init.stock_dictionnary
+            #self.trending_stocks = self.trending_stocks.append(row, ignore_index=True)
             #we reached the nb of trending stocks we wanted
             i+=1
             if i == self.nb_trending:
                 break
 
+    def adjust_keywords(self,symbol,stock_name):
+        """Method that adjust the keyword for the stock we are searching on Reddit so that they can be found easily.
+        It returns the new dictionary with adjusted keywords
+        Ex : If name is 'Apple', we may also be looking for 'apple'"""
+
+        new_keywords = []
+        #remove 'undesired' word (inc, corp, etc.)
+        for removing_ in self.init.keywords_to_remove:
+            stock_name = stock_name.replace(removing_,'')
+
+        # Remove single letter words (class A, etc.)
+        stock_name = ' '.join([word for word in stock_name.split() if len(word) > 1])
+
+        #Remove leading or trailing space
+        stock_name = stock_name.strip()
+        symbol = symbol.strip()
+
+        # remove duplicated whitespaces
+        stock_name = stock_name.replace("  ", " ")
+        symbol = symbol.strip()
+
+        #stock with characters in lower case
+        new_keywords.append(stock_name.lower())
+
+        #Stock and ticker with each first letter of each word in uppercase
+        new_keywords.append(string.capwords(stock_name.lower()))
+        new_keywords.append(string.capwords(symbol.lower()))
+
+        #all letter of symbol in cap letter
+        new_keywords.append(symbol.upper())
+
+        return new_keywords
 
     def get_data(self,dict, keys_):
         """Function that stores the data from a dictionary with the specific keys in a new dictionary
@@ -87,4 +120,4 @@ class StockToTrade():
         new_dict = {}
         for key in keys_:
             new_dict[key] = dict[key]
-        return new_dict
+        return new_dict[key]
