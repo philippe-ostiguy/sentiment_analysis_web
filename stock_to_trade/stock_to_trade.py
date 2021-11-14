@@ -27,37 +27,56 @@
 """Module to determine the stock we want to webscrap the data from"""
 
 import requests
-
+import pandas as pd
 
 class StockToTrade():
     """Class to decide which stock we webscrap data"""
 
-    def __init__(self):
+    def __init__(self,init):
         """
         Attributes
         ----------
-        `self.stocktwit_endpoint` : str
-            Stockwit API's endpoint
+        `self.stocktwit_trending` : str
+            Stockwit API's endpoint to get the trending stocks
+        `self.response_parameters` : list
+            list containing the parameters we want to get from the API response
+        `self.nb_trending` : int
+            nb of trennding stocks we want to webscrap from stocktwits
 
+        Parameter
+        ----------
+        `init` : cls
+            class from the module `initialize.py` that initializes global variables for the project
         """
 
-        self.stocktwit_endpoint = 'https://api.stocktwits.com/api/2/trending/symbols/equities.json'
+        self.response_parameters = ['symbol']
+        self.nb_trending = 10
+        self.stocktwit_trending = 'https://api.stocktwits.com/api/2/trending/symbols/equities.json'
+        self.init = init
+        self.trending_stocks = pd.DataFrame()
+
+    def __call__(self):
+        self.get_trending()
 
     def get_trending(self):
         """Function to get the most trending stock on Stock Twits
-
         By default it will return the 30 most trending stocks
         """
 
-        response = requests.get(self.stocktwit_endpoint)
-        for stock in response.json()['symbols']:
+        response = requests.get(self.stocktwit_trending)
 
+        i = 0
+        for stock in response.json()['symbols']:
             row = self.get_data(stock,self.response_parameters)
             self.trending_stocks = self.trending_stocks.append(row, ignore_index=True)
+            #we reached the nb of trending stocks we wanted
+            i+=1
+            if i == self.nb_trending:
+                break
 
 
     def get_data(self,dict, keys_):
-        """Function that stores the data from a dictionary with the specific keys in a a new dictionary
+        """Function that stores the data from a dictionary with the specific keys in a new dictionary
         Parameters
         ----------
         `dict` : dictionary

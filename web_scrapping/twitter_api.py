@@ -90,8 +90,8 @@ class TwitsApi():
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
 
         self.twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
-                                               end_point=self.stock_endpoint,class_time=self.class_time,
-                                               pause_time=self.init.pause_time,date_to_search = self.date_to_search)
+                                               end_point=self.stock_endpoint,pause_time=self.init.pause_time,
+                                         date_to_search = self.date_to_search,is_twitter= True)
         return self.write_values()
 
     def convert_time(self,iteration):
@@ -128,7 +128,7 @@ class TwitsApi():
 
         def wrapper_(self):
             for twit in self.twits:
-                func(self,twit.text)
+                func(self,twit)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first")
             return self.init.pd_stock_sentiment

@@ -35,6 +35,7 @@ import pandas as pd
 from initialize import InitProject
 from datetime import datetime, timedelta, time, date
 import perform_stats as ps
+import stock_to_trade as stt
 
 class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary
@@ -74,6 +75,10 @@ class InitMain(InitProject):
 if __name__ == '__main__':
     init_main = InitMain()
     init_main()
+
+    #decide which stock we webscrap
+    stt_ = stt.StockToTrade(init_main)
+    stt_()
 
     #initialize the Roberta sentiment analysis
     init_roberta = sa.TwitAnalysis(init_main)

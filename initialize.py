@@ -103,7 +103,8 @@ class InitProject():
         self.columns_metrics = ["Total average sentiment","Total number of comments","Average sentiment for ",
                                 "Nb of comments for ", "Stocktwits sentiment accuracy"]
         self.comment_source = ['reddit','stocktwit','twitter']
-        self.time_ago = 24
+        self.keywords_to_remove = ['Inc','INC','Inc.','Corp',]
+        self.time_ago = 168
         self.pause_time = 2
 
         # list of variables that we should not set ourself

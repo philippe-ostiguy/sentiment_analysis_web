@@ -93,32 +93,39 @@ def text_cleanup(text_to_clean):
 
     return text_to_clean
 
-def webscrap_content(**kwargs):
+def webscrap_content(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter=False):
     """Method to web-scrap content on Stocktwits
     """
 
-    kwargs['driver'].get(kwargs['end_point'])
-    time.sleep(kwargs['pause_time'])
-    scroll_to_value(**kwargs)
-    time.sleep(kwargs['pause_time'])
-    return kwargs['driver'].find_elements_by_xpath(kwargs['posts_to_return'])
+    twitter_post =[]
+    driver.get(end_point)
+    time.sleep(pause_time)
+    twitter_post = scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter)
+    time.sleep(pause_time)
 
-def scroll_to_value(**kwargs):
+    #source is not twitter
+    if not is_twitter:
+        return driver.find_elements_by_xpath(posts_to_return)
+    #source is twitter
+    else :
+        return twitter_post
+
+def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter):
     """Method that scrolls until we find the value, then stops. It search for a date and the class containg
     the date"""
 
-
-    wait = WebDriverWait(kwargs['driver'], kwargs['pause_time'])
+    wait = WebDriverWait(driver, pause_time)
     element_ = None
-
+    twitter_post = []
     while not element_:
-
-        kwargs['driver'].execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        if is_twitter:
+            twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         try:
-            element_ = wait.until(EC.presence_of_element_located((By.XPATH,kwargs['date_to_search'])))
-
+            element_ = wait.until(EC.presence_of_element_located((By.XPATH,date_to_search)))
         except TimeoutException:
             pass
+    return twitter_post
 
 def write_values(comment, dict_, pv, model,source):
     """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1

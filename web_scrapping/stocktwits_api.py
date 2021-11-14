@@ -87,8 +87,8 @@ class StockTwitsApi():
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
         self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
-                                               end_point=self.stock_endpoint, class_time=self.class_time,
-                                               pause_time=self.init.pause_time, date_to_search = self.date_to_search)
+                                               end_point=self.stock_endpoint, pause_time=self.init.pause_time,
+                                               date_to_search = self.date_to_search)
         return self.write_values()
 
     def convert_time(self):
