@@ -86,22 +86,24 @@ if __name__ == '__main__':
 
     for stock,keywords in init.stock_dictionnary.items():
         init.current_stock[stock] = keywords
-    # fetching the data on social media and twitter
-    #Reddit
-    #ra_ = ws.RedditApi_(init,init_roberta)
-    #init.pd_stock_sentiment= ra_() # return the comments with sentiment analysis using Twitter-based Roberta
-    # Transformer
 
-    #Stocktwits
-    #sta_ = ws.StockTwitsApi(init,init_roberta)
-    #init.pd_stock_sentiment =  sta_()
+        # fetching the data on social media and twitter
 
-    #Twitter
-    ta = ws.TwitsApi(init,init_roberta)
-    init.pd_stock_sentiment = ta()
+        #Reddit
+        ra_ = ws.RedditApi_(init,init_roberta)
+        # return the comments with sentiment analysis using Twitter-based Roberta Transformer
+        init.pd_stock_sentiment= ra_()
 
-    cm = ps.CalculateMetrics(init)
-    init = cm()
+        #Stocktwits
+        sta_ = ws.StockTwitsApi(init,init_roberta)
+        init.pd_stock_sentiment =  sta_()
+
+        #Twitter
+        ta = ws.TwitsApi(init,init_roberta)
+        init.pd_stock_sentiment = ta()
+
+        cm = ps.CalculateMetrics(init)
+        init = cm()
 
 
     t = 5

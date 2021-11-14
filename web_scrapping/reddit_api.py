@@ -243,7 +243,6 @@ class RedditApi_():
                 func(self)
                 self.reddit_comments += [comment.text for comment in self.init.driver.find_elements_by_xpath(
                     "//div[contains(@class,'{}')]".format(self.class_comments))]
-                break
         return wrapper_
 
     def loop_comments(func):
@@ -316,7 +315,5 @@ class RedditApi_():
 
             except:
                 pass
-
             i+=1
-            if i ==2:
-                break
+
