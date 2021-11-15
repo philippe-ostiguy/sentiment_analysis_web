@@ -39,6 +39,7 @@ class CalculateMetrics():
         self.init = init  # variable for the class containing the global variables for the project
         self.pd_subset = pd.DataFrame()
 
+
     def __call__(self):
 
         self.nb_comments()

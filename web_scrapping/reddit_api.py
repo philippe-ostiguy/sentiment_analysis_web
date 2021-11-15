@@ -134,17 +134,16 @@ class RedditApi_():
         self.rejected_replies_list = ""  # list of MoreComments buttons we don't click on it. It depends of
         self.buffer_time_size = 10
         self.date__ = ""
-
     def __call__(self):
         """Performs all the method necessary to webscrap the content on reddit's posts and analyse the mood of the
         comments"""
 
+        
         self.time_to_search()
         self.rejected_replies()
         self.get_posts()
         self.scroll_to_end()
         return self.write_values()
-    
 
     def get_posts(self):
         """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is

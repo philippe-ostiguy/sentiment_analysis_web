@@ -64,10 +64,11 @@ class InitMain(InitProject):
         """ Function that checks if the current days is weekend or a US Stock holiday"""
 
         #check if current day is a holiday
-        if ((datetime.now().month in [date_.month for date_ in self.us_holidays]) and
-            (datetime.now().year in [date_.year for date_ in self.us_holidays]) and
-            (datetime.now().day in [date_.day for date_ in self.us_holidays])):
-            raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
+
+        for date_ in self.us_holidays:
+            if ((datetime.now().month == date_.month) and (datetime.now().year == date_.year) and
+                    (datetime.now().day == date_.day)):
+                raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
 
         if (datetime.today().weekday()  >= 5):
             raise Exception("Current day is the weekend. The market is closed. The program will shut down")
@@ -84,27 +85,28 @@ if __name__ == '__main__':
     init_roberta = sa.TwitAnalysis(init)
     init_roberta() #built-in call method to initialize the model
 
+    #initialize all classes we want to webscrap data
+    ra_ = ws.RedditApi_(init, init_roberta) # Reddit
+    sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
+    ta = ws.TwitsApi(init, init_roberta) # Twitter
+
+    #initialize the class to calculate the metrics
+    cm = ps.CalculateMetrics(init)
+    init = cm()
+
     for stock,keywords in init.stock_dictionnary.items():
         init.current_stock[stock] = keywords
 
         # fetching the data on social media and twitter
 
-        #Reddit
-        ra_ = ws.RedditApi_(init,init_roberta)
-        # return the comments with sentiment analysis using Twitter-based Roberta Transformer
-        init.pd_stock_sentiment= ra_()
-
-        #Stocktwits
-        sta_ = ws.StockTwitsApi(init,init_roberta)
+        # return the comments with sentiment analysis using Twitter-based Roberta Transformer on reddit, twitter,
+        #stocktwits
+        init.pd_stock_sentiment = ra_()
         init.pd_stock_sentiment =  sta_()
-
-        #Twitter
-        ta = ws.TwitsApi(init,init_roberta)
         init.pd_stock_sentiment = ta()
 
-        cm = ps.CalculateMetrics(init)
+        #calculate the metrics
         init = cm()
-
 
     t = 5
 
