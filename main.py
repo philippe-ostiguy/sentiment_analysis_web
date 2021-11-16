@@ -92,7 +92,9 @@ if __name__ == '__main__':
 
     #initialize the class to calculate the metrics
     cm = ps.CalculateMetrics(init)
-    init = cm()
+
+    #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
+
 
     for stock,keywords in init.stock_dictionnary.items():
         init.current_stock[stock] = keywords
