@@ -125,9 +125,10 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
             element_ = wait.until(EC.presence_of_element_located((By.XPATH,date_to_search)))
         except TimeoutException:
             pass
+        break
     return twitter_post
 
-def write_values(comment, dict_, pv, model,source):
+def write_values(comment, pv, model,source, dict_):
     """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
      (-1 being the most negative and +1 being the most positive and write different values in the
      pandas DataFrame `self.pd_stock_sentiment`"""

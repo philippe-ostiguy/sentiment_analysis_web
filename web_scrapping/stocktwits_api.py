@@ -70,8 +70,7 @@ class StockTwitsApi():
         # variable for the class with the model/transformer to analyse twits/comments
         self.init_sentiment = init_sentiment
 
-        self.stock_endpoint = 'https://stocktwits.com/symbol/' + 'gib'
-        self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/', list(self.init.current_stock.keys())[0]])
+        self.stock_endpoint = ''
 
         self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S' #time
         self.class_twits = 'st_29E11sZ st_jGV698i st_1GuPg4J st_qEtgVMo st_2uhTU4W'
@@ -80,18 +79,26 @@ class StockTwitsApi():
         self.date_ = '' #date if different from today in the Xpath
         self.stock_twits = "" #contains the twit fetched from stocktwits (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
-        
-    def __call__(self):
 
+    def __call__(self):
+        """built-in function to initialize values"""
 
         self.convert_time()
         self.date_to_search = '//a[@class="{}" and contains(text(),"{}")]'.format(self.class_time, self.date_)
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
+
+    def webscrap(self):
+        """Performs all the method necessary to webscrap the content on stocktwits and analyse the mood of the
+        comments"""
+
+        self.stock_twits = ""
+        self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/', list(self.init.current_stock.keys())[0]])
         self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
                                                end_point=self.stock_endpoint, pause_time=self.init.pause_time,
                                                date_to_search = self.date_to_search)
         return self.write_values()
+
 
     def convert_time(self):
         """Method to convert time readable in the Xpath in Selenium.
@@ -109,6 +116,7 @@ class StockTwitsApi():
 
         def wrapper_(self):
             for twit in self.stock_twits:
+                self.twit_dictionary = {}
                 # keep the text after the symbol which is the opinion expressed
                 bullish = 'Bullish'
                 bearish = 'Bearish'
@@ -143,5 +151,6 @@ class StockTwitsApi():
          (-1 being the most negative and +1 being the most positive and write different values in the
          pandas DataFrame `self.pd_stock_sentiment`"""
 
-        self.init.pd_stock_sentiment = pm.write_values(comment = twit,dict_ = self.twit_dictionary,pv = self.init,
-                                                     model = self.init_sentiment,source = 1)
+        self.init.pd_stock_sentiment = pm.write_values(comment = twit,pv = self.init,
+                                                     model = self.init_sentiment,source = 1,
+                                                       dict_ = self.twit_dictionary)

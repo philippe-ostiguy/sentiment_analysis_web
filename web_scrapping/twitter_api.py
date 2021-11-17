@@ -71,8 +71,6 @@ class TwitsApi():
         # variable for the class with the model/transformer to analyse twits/comments
         self.init_sentiment = init_sentiment
 
-        self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', list(self.init.current_stock.keys())[0],
-                                       '&src=typed_query&f=live'])
         self.class_time = 'css-4rbku5 css-18t94o4 css-901oao r-14j79pv r-1loqt21 r-1q142lx r-37j5jr r-a023e6 ' \
                           'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
         self.class_twits = 'css-901oao r-18jsvk2 r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0'
@@ -84,16 +82,26 @@ class TwitsApi():
         self.twit_dictionary = {}  # dictionary with information from twits
 
     def __call__(self):
+        """built-in function to initialize values"""
 
         self.buffer_date()
         self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
 
+    def webscrap(self):
+        """Performs all the method necessary to webscrap the content on twitter and analyse the mood of the
+        comments"""
+
+        self.twits = "" #we need to reinitialise the list which contains the comments everytime we fetch data
+                        #for a new stock
+        self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', list(self.init.current_stock.keys())[0],
+                                       '&src=typed_query&f=live'])
         self.twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
                                                end_point=self.stock_endpoint,pause_time=self.init.pause_time,
                                          date_to_search = self.date_to_search,is_twitter= True)
         return self.write_values()
+
 
     def convert_time(self,iteration):
         """Method to convert time readable in the Xpath in Selenium.
@@ -129,6 +137,7 @@ class TwitsApi():
 
         def wrapper_(self):
             for twit in self.twits:
+                self.twit_dictionary = {}  # dictionary with information from twits
                 func(self,twit)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first")
@@ -141,5 +150,5 @@ class TwitsApi():
          (-1 being the most negative and +1 being the most positive and write different values in the
          pandas DataFrame `self.pd_stock_sentiment`"""
 
-        self.init.pd_stock_sentiment = pm.write_values(comment = twit,dict_ = self.twit_dictionary,pv = self.init,
-                                                     model = self.init_sentiment,source = 2)
+        self.init.pd_stock_sentiment = pm.write_values(comment = twit,pv = self.init,source = 2,
+                                                       model = self.init_sentiment,dict_ = self.twit_dictionary)

@@ -134,6 +134,7 @@ class RedditApi_():
         self.rejected_replies_list = ""  # list of MoreComments buttons we don't click on it. It depends of
         self.buffer_time_size = 10
         self.date__ = ""
+        self.reddit_dict_ = {}
 
     def webscrap(self):
         """Performs all the method necessary to webscrap the content on reddit's posts and analyse the mood of the
@@ -247,15 +248,14 @@ class RedditApi_():
         """Decorator to loop throught the comments that we webscrap"""
 
         def wrapper_(self):
-
-            reddit_dictionary = {}  # dictionary with information from twits
+            self.reddit_dict_ = {}
             for comment in self.reddit_comments:
                 # check if the post contains the stock (keywords) we are looking for
                 for stock,keywords in self.init.current_stock.items():
                     #check if the comment contains at least one of the keyword
                     if any(keyword in comment for keyword in keywords):
 
-                        func(self,comment,reddit_dictionary)
+                        func(self,comment)
                         break # not analyzing the same post twice (in case we have more than 1 keyword)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first")
@@ -263,13 +263,13 @@ class RedditApi_():
         return wrapper_
 
     @loop_comments
-    def write_values(self,comment,reddit_dictionary):
+    def write_values(self,comment):
         """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
          (-1 being the most negative and +1 being the most positive and write different values in the
          pandas DataFrame `self.pd_stock_sentiment`"""
 
-        self.init.pd_stock_sentiment = pm.write_values(comment = comment,dict_ = reddit_dictionary,pv = self.init,
-                                                     model = self.roberta,source = 0)
+        self.init.pd_stock_sentiment = pm.write_values(comment = comment,pv = self.init,
+                                                     model = self.roberta,source = 0,dict_ = self.reddit_dict_)
 
     @loop_reddit_post
     def scroll_to_end(self):
@@ -313,7 +313,7 @@ class RedditApi_():
 
             except:
                 pass
-            i+=1
+            break
 
 
 
