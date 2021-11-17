@@ -93,11 +93,12 @@ class StockTwitsApi():
         comments"""
 
         self.stock_twits = ""
-        self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/', list(self.init.current_stock.keys())[0]])
-        self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
-                                               end_point=self.stock_endpoint, pause_time=self.init.pause_time,
-                                               date_to_search = self.date_to_search)
-        return self.write_values()
+        self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/',self.init.current_stock])
+        #self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
+         #                                      end_point=self.stock_endpoint, pause_time=self.init.pause_time,
+          #                                     date_to_search = self.date_to_search)
+        #return self.write_values()
+        t = 5
 
 
     def convert_time(self):

@@ -95,7 +95,7 @@ class TwitsApi():
 
         self.twits = "" #we need to reinitialise the list which contains the comments everytime we fetch data
                         #for a new stock
-        self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', list(self.init.current_stock.keys())[0],
+        self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', self.init.current_stock,
                                        '&src=typed_query&f=live'])
         self.twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
                                                end_point=self.stock_endpoint,pause_time=self.init.pause_time,

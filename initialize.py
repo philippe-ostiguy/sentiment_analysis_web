@@ -105,8 +105,8 @@ class InitProject():
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
         #number of a liste in the code to get the value
         self.columns_sentiment = ['text','probability','directional','source']
-        self.columns_metrics = ["Total average sentiment","Total number of comments","Average sentiment for ",
-                                "Nb of comments for ", "Stocktwits sentiment accuracy"]
+        self.columns_metrics = ["Total average sentiment","Total number of comments", "Stocktwits sentiment accuracy",
+                                "Average sentiment for ", "Nb of comments for "]
         self.comment_source = ['reddit','stocktwit','twitter']
         self.keywords_to_remove = [' Inc.',' INC',' Inc', ' Corporation', ' Corp.', ' Corp', ' Co', ' Ltd', ' ltd',',']
         self.time_ago = 24
@@ -115,7 +115,7 @@ class InitProject():
         # list of variables that we should not set ourself
         self.us_holidays = []
         self.stock_dictionnary = {} #this will be changed later and set automatically
-        self.current_stock = {}
+        self.current_stock = '' #current stock we webscrap
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
         self.driver = "" #driver in Selenium to webscrap data
         self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
@@ -129,6 +129,19 @@ class InitProject():
         self.get_us_holiday()
         self.init_driver()
         self.set_time_ago()
+        self.create_columns()
+        t = 5
+
+    def create_columns(self):
+        """Create new (appropriate) columns for the pd Dataframe metrics"""
+
+        column_tempo = self.columns_metrics
+        i = 0
+        for source in self.comment_source:
+            column_tempo[i+3] = self.columns_metrics[2] +source
+            column_tempo[i+4] = self.columns_metrics[3] + source
+            i+=1
+        self.pd_metrics =self.pd_metrics(columns=column_tempo)
 
     def get_us_holiday(self):
         """Get the US Stock holidays """

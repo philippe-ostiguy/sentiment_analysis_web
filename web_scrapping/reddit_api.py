@@ -60,13 +60,9 @@ class RedditApi_():
 
         Attributes
         ----------
-        `self.init.current_stock` : dict
-            name of the stock we want to analyse the data with the keywords associated with that stock.
-            Ex : { Tesla : ['TSLA', 'tesla'] }. The stock we are seaching data for is 'Tesla'. The first value for each
-            stock (key) is the ticker which should be in capital letter only. Ex: Keyword is 'TSLA' we will only search
-            for 'TSLA' (searching is case-sensitive).
-            The second keywords and more can be either capital letter or not. We search for both here.
-            Ex : keyword is 'Tesla', we will also search for 'tesla'.
+        `self.init.current_stock` : str
+            current stock we webscrap
+
         `self.time_ago` : int
             Number of hours in the past we want to webscrape the data. This value must be 1 hour or more as the time
             format in Reddit is in hours (under 24 hours) and days (24 hours or more after the post was created).
@@ -251,12 +247,13 @@ class RedditApi_():
             self.reddit_dict_ = {}
             for comment in self.reddit_comments:
                 # check if the post contains the stock (keywords) we are looking for
-                for stock,keywords in self.init.current_stock.items():
-                    #check if the comment contains at least one of the keyword
-                    if any(keyword in comment for keyword in keywords):
+                for stock,keywords in self.init.stock_dictionnary.items():
+                    if stock == self.init.current_stock:
+                        #check if the comment contains at least one of the keyword
+                        if any(keyword in comment for keyword in keywords):
 
-                        func(self,comment)
-                        break # not analyzing the same post twice (in case we have more than 1 keyword)
+                            func(self,comment)
+                            break # not analyzing the same post twice (in case we have more than 1 keyword)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first")
             return self.init.pd_stock_sentiment
