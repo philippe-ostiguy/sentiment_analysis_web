@@ -58,6 +58,7 @@ class InitMain(InitProject):
         self.driver = init.driver
         self.time_ago = init.time_ago
         self.us_holidays = init.us_holidays
+        self.pd_metrics = init.pd_metrics
         self.check_closed_days()
 
     def check_closed_days(self):
@@ -84,10 +85,6 @@ if __name__ == '__main__':
     init_roberta = sa.TwitAnalysis(init)
     init_roberta() #built-in call method to initialize the model
 
-    sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
-    sta_()
-
-    """
     #initialize the Roberta sentiment analysis
     init_roberta = sa.TwitAnalysis(init)
     init_roberta() #built-in call method to initialize the model
@@ -104,12 +101,9 @@ if __name__ == '__main__':
 
     #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
     ra_.webscrap()
-    """
+
     for stock,keywords in init.stock_dictionnary.items():
         init.current_stock = stock #changing to current stock in loop
-
-        """
-        
 
         # fetching the data on social media and twitter
 
@@ -121,7 +115,8 @@ if __name__ == '__main__':
 
         #calculate the metrics
         init = cm()
-        """
+
+
     t = 5
 
 

@@ -130,18 +130,25 @@ class InitProject():
         self.init_driver()
         self.set_time_ago()
         self.create_columns()
-        t = 5
 
     def create_columns(self):
         """Create new (appropriate) columns for the pd Dataframe metrics"""
 
-        column_tempo = self.columns_metrics
+        column_tempo = self.columns_metrics.copy()
         i = 0
         for source in self.comment_source:
-            column_tempo[i+3] = self.columns_metrics[2] +source
-            column_tempo[i+4] = self.columns_metrics[3] + source
+            try:
+                column_tempo[i*2+3] = self.columns_metrics[3] +source
+            except:
+                column_tempo.append(self.columns_metrics[3] +source)
+
+            try:
+                column_tempo[i*2+4] = self.columns_metrics[4] + source
+            except:
+                column_tempo.append(self.columns_metrics[4] +source)
+
             i+=1
-        self.pd_metrics =self.pd_metrics(columns=column_tempo)
+        self.pd_metrics =self.pd_metrics.reindex(columns=column_tempo)
 
     def get_us_holiday(self):
         """Get the US Stock holidays """
