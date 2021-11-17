@@ -80,7 +80,7 @@ if __name__ == '__main__':
     #decide which stock we webscrap
     stt_ = stt.StockToTrade(init)
     stt_()
-
+    """
     #initialize the Roberta sentiment analysis
     init_roberta = sa.TwitAnalysis(init)
     init_roberta() #built-in call method to initialize the model
@@ -97,8 +97,10 @@ if __name__ == '__main__':
 
     #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
     ra_.webscrap()
-
+    """
     for stock,keywords in init.stock_dictionnary.items():
+        t = 5
+        """
         init.current_stock[stock] = keywords
 
         # fetching the data on social media and twitter
@@ -111,6 +113,7 @@ if __name__ == '__main__':
 
         #calculate the metrics
         init = cm()
+        """
 
     t = 5
 
