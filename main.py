@@ -60,6 +60,7 @@ class InitMain(InitProject):
         self.time_ago = init.time_ago
         self.us_holidays = init.us_holidays
         self.pd_metrics = init.pd_metrics
+        self.pd_timer = init.pd_timer
         self.check_closed_days()
 
     def check_closed_days(self):
@@ -72,14 +73,12 @@ class InitMain(InitProject):
                     (datetime.now().day == date_.day)):
                 raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
 
-        if (datetime.today().weekday()  >= 5):
-            raise Exception("Current day is the weekend. The market is closed. The program will shut down")
+        #if (datetime.today().weekday()  >= 5):
+         #   raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
     init = InitMain()
     init()
-
-
 
     #decide which stock we webscrap
     stt_ = stt.StockToTrade(init)

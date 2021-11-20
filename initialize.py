@@ -129,8 +129,15 @@ class InitProject():
         # calling the functions
         self.get_us_holiday()
         self.init_driver()
+        self.init_timer()
         self.set_time_ago()
         self.create_columns()
+
+    def init_timer(self):
+        """Initialize the values to 0 (first line) of self.pd_timer"""
+
+        for source in self.comment_source:
+            self.pd_timer.loc[0, source] = 0
 
     def create_columns(self):
         """Create new (appropriate) columns for the pd Dataframe metrics"""

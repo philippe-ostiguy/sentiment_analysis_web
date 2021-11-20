@@ -23,6 +23,7 @@
 #  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ###############################################################################
+""" Methods used across the package wbe_scrapping"""
 
 from datetime import datetime
 import re
@@ -144,3 +145,19 @@ def write_values(comment, pv, model,source, dict_):
             (dict_, ignore_index=True)
 
     return pv.pd_stock_sentiment
+
+
+def decorator_timer(source):
+    """Decorator to time how long a function takes to execute
+
+    Sources nb are in `initialise.py` (reddit, twitter and stocktwits)"""
+
+    def timer(func):
+        def wrapper_timer(self):
+            start_time = time.time()
+            func(self)
+            end_time = time.time()
+            elapse_time = end_time - start_time
+            self.init.pd_timer.loc[0, self.init.comment_source[source]] += elapse_time
+        return wrapper_timer
+    return timer

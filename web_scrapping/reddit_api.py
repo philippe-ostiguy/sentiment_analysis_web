@@ -132,6 +132,7 @@ class RedditApi_():
         self.date__ = ""
         self.reddit_dict_ = {}
 
+    @pm.decorator_timer(0) #0 is for reddit in `self.comment_source` in `initialise.py`
     def webscrap(self):
         """Performs all the method necessary to webscrap the content on reddit's posts and analyse the mood of the
         comments"""
@@ -259,6 +260,7 @@ class RedditApi_():
             return self.init.pd_stock_sentiment
         return wrapper_
 
+    @pm.decorator_timer(0) #0 is for reddit in `self.comment_source` in `initialise.py`
     @loop_comments
     def write_values(self,comment):
         """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
