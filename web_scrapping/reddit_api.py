@@ -312,7 +312,7 @@ class RedditApi_():
             except:
                 pass
 
-
+            break
             i+=1
 
 

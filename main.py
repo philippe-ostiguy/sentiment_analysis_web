@@ -78,7 +78,9 @@ class InitMain(InitProject):
 if __name__ == '__main__':
     init = InitMain()
     init()
-    start_time = time.time()
+
+
+
     #decide which stock we webscrap
     stt_ = stt.StockToTrade(init)
     stt_()
@@ -117,8 +119,6 @@ if __name__ == '__main__':
         #calculate the metrics
         init = cm()
 
-    end_time = time.time()
-    total_time = end_time - start_time
     t = 5
 
 

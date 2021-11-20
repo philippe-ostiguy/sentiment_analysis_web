@@ -122,6 +122,7 @@ class InitProject():
         # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
         self.check_weekend = False # False per default.
         self.pd_metrics = pd.DataFrame()
+        self.pd_timer = pd.DataFrame(columns=self.comment_source)
 
     def __call__(self):
 
