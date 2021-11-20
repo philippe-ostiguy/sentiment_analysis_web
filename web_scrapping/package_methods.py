@@ -126,7 +126,6 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
             element_ = wait.until(EC.presence_of_element_located((By.XPATH,date_to_search)))
         except TimeoutException:
             pass
-        break
     return twitter_post
 
 def write_values(comment, pv, model,source, dict_):

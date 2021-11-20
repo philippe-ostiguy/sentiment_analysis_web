@@ -38,7 +38,10 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException
 import web_scrapping.package_methods as pm
+
 
 class RedditApi_():
     """Class to webscrap data on Reddit using Selenium. It stores it in a pandas dataFrame.
@@ -122,18 +125,19 @@ class RedditApi_():
 
         self.class_time = '_3yx4Dn0W3Yunucf5sVJeFU'  # time
         self.class_more_comments = '_3sf33-9rVAO_v4y0pIW_CH'
+        #self.class_more_comments_ = '_2HYsucNpMdUpYlGBMviq8M _23013peWUhznY89KuYPZKv'
         self.class_comments = '_3cjCphgls6DH-irkVaA0GM'  # post
         self.reddit_posts_url = [] #list of url posts we will webscrap data from on Reddit
         self.reddit_comments= [] #list that contains the comments (text only)
 
-        self.min_replies = 100
+        self.min_replies = 200
         self.min_reply_list = []  # associated list with the `self.min_replies` attribute
         self.rejected_replies_list = ""  # list of MoreComments buttons we don't click on it. It depends of
-        self.rejected_replies_list_ = [] #second list of rejected replies that we don't click on. This is the second
-                                        #check
+
         self.buffer_time_size = 10
         self.date__ = ""
         self.reddit_dict_ = {}
+        self.ignored_exceptions = [StaleElementReferenceException]
 
     @pm.decorator_timer(0) #0 is for reddit in `self.comment_source` in `initialise.py`
     def webscrap(self):
@@ -146,9 +150,9 @@ class RedditApi_():
         self.scroll_to_end()
 
     def get_posts(self):
-        """ Method to get the posts on wallstreet so that we get comments from the last 24 hours. This is
-        approximately, some comments will be a little bit older than 24 hours as when we fetch data from a post, we
-        fetch all the data.
+        """ Method to get the posts on wallstreet so that we get comments from the last `self.time_ago` hours. This is
+        approximately, some comments will be a little bit older than `self.time_ago` hours as when we fetch data from
+        a post, we fetch all the data.
 
         It depends on the creation of the post. We webscrap two types of post everyday (Tuesday to Friday),
         which makes 3 posts in total to webscrap. One of them is named 'Daily Discussion' and is generally created
@@ -225,11 +229,9 @@ class RedditApi_():
         while i < self.min_replies:
             if i == 1:
                 self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more reply', '")'])
-                self.rejected_replies_list_.append(str(i) + ' more reply')
             else:
                 self.rejected_replies_list += ''.join(
                     [' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
-                self.rejected_replies_list_.append(str(i) + ' more replies')
             i += 1
 
 
@@ -239,8 +241,7 @@ class RedditApi_():
         def wrapper_(self):
 
             for url_post in self.reddit_posts_url:
-                #self.init.driver.get(url_post)
-                self.init.driver.get('https://www.reddit.com/r/wallstreetbets/comments/qxux0t/not_excited_for_tax_season/')
+                self.init.driver.get(url_post)
                 time.sleep(2)
                 func(self)
                 self.reddit_comments += [comment.text for comment in self.init.driver.find_elements_by_xpath(
@@ -286,13 +287,13 @@ class RedditApi_():
         - We don't fetch second-level comments (comments under first-level comment) as it will take to much time)
         """
 
-        wait = WebDriverWait(self.init.driver, self.init.pause_time)
+        wait = WebDriverWait(self.init.driver, self.init.pause_time,ignored_exceptions=self.ignored_exceptions)
         element = None
         screen_height = self.init.driver.execute_script("return window.screen.height;")  # return window screen height
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
-                            + self.rejected_replies_list
+                            + self.rejected_replies_list + ']'
         i = 1
-        nb_replies = ''
+        existing_post = []
 
         while not element:
 
@@ -306,47 +307,24 @@ class RedditApi_():
             if (screen_height) * i > scroll_height:
                 # the scrolling may go to quickly and arrives at the end of the page prematurely
                 try:
-                    button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
+                    button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
                     button_click.click()
-
                 except:
-                    #make sure we click on all required 'MoreComments' buttons
-                    comment_found = False
-                    for replies in self.rejected_replies_list_:
-                        if replies == nb_replies and not replies:
-                            comment_found = True
-                            break
-
-                    if not comment_found:
-                        raise Exception(f'In `reddit_api.py`, it did not click all required "More Comments"')
-
-                    else :
-                        break
+                    break
 
             # Check if there is a button 'MoreComments' and click on it to load more comments
             try:
-                button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
-                nb_replies = button_click.text
-                while 'loading' in nb_replies:
-                    time.sleep(2)
-                    nb_replies = button_click.text
+                button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text)))
                 button_click.click()
-                i-=1
-
+                i -= 1
             except:
                 pass
 
-            if i ==10:
-                comment_found = False
-                for replies in self.rejected_replies_list_:
-                    if replies == nb_replies:
-                        comment_found = True
-                        break
+        #check if the browser did not click on all the 'required' buttons 'more replies'
+        existing_post += [post.text for post in self.init.driver.find_elements_by_xpath(button_click_text)]
+        if existing_post:
+            raise Exception("Error the driver did not click on all 'required' button (load more replies)")
 
-                if not comment_found and not replies:
-                    raise Exception(f'In `reddit_api.py`, it did not click all required "More Comments"')
-                break
-            i+=1
 
 
 
