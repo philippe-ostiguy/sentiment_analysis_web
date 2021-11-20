@@ -100,6 +100,7 @@ class InitProject():
             Pandas Dataframe with metrics from the results. Ex: Nb of comments, average sentiment per social media, etc.
         `self.keywords_to_remove` : list of keyword to remove when we search for a stock on Reddit. Ex: we know that
             'Apple' is named 'Apple Inc.'. We want to remove the 'Inc' so that we only search for 'Apple' on reddit
+        `self.total_comments` : total comments for reddit
         """
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
@@ -123,6 +124,7 @@ class InitProject():
         self.check_weekend = False # False per default.
         self.pd_metrics = pd.DataFrame()
         self.pd_timer = pd.DataFrame(columns=self.comment_source)
+        self.total_comments = []
 
     def __call__(self):
 
@@ -198,13 +200,14 @@ class InitProject():
 
         # Options for Chrome Driver
         option = Options()
-        option.add_argument("--disable-infobars")
-        option.add_argument("start-maximized")
-        option.add_argument("--disable-extensions")
+        #option.add_argument("--disable-infobars")
+        #option.add_argument("start-maximized")
+        option.headless = True
+        #option.add_argument("--disable-extensions")
         # Pass the argument 1 to allow notifications and 2 to block them
-        option.add_experimental_option("prefs", {
-            "profile.default_content_setting_values.notifications": 2
-        })
+        #option.add_experimental_option("prefs", {
+        #    "profile.default_content_setting_values.notifications": 2
+        #})
 
         self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
         #profile = webdriver.FirefoxProfile()

@@ -120,7 +120,7 @@ if __name__ == '__main__':
         init = cm()
 
     t = 5
-
+    init.pd_stock_sentiment = ra_.write_values()
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
 

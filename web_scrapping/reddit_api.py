@@ -42,7 +42,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 import web_scrapping.package_methods as pm
 
-
 class RedditApi_():
     """Class to webscrap data on Reddit using Selenium. It stores it in a pandas dataFrame.
     Things to know :
@@ -110,7 +109,6 @@ class RedditApi_():
         #We should touch these data. They come from the classes where we initialize the data
         self.init = init #giving the values of class `init` to `self.init` variable (pv for project variables)
         self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
-
 
         self.date_ = ""
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
@@ -246,6 +244,8 @@ class RedditApi_():
                 func(self)
                 self.reddit_comments += [comment.text for comment in self.init.driver.find_elements_by_xpath(
                     "//div[contains(@class,'{}')]".format(self.class_comments))]
+                #os.system(f'say -v "Victoria" "Mother Fucker"')
+                t = 5
         return wrapper_
 
     def loop_comments(func):
