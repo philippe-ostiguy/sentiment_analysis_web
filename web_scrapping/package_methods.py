@@ -159,5 +159,6 @@ def decorator_timer(source):
             end_time = time.time()
             elapse_time = end_time - start_time
             self.init.pd_timer.loc[0, self.init.comment_source[source]] += elapse_time
+            return self.init.pd_stock_sentiment
         return wrapper_timer
     return timer

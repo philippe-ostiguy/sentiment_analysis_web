@@ -111,6 +111,7 @@ if __name__ == '__main__':
 
         # return the comments with sentiment analysis using Twitter-based Roberta Transformer on reddit, twitter,
         #stocktwits
+
         init.pd_stock_sentiment = ra_.write_values()
         init.pd_stock_sentiment =  sta_.webscrap()
         init.pd_stock_sentiment = ta.webscrap()

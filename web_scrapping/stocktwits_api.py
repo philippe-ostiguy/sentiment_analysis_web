@@ -88,6 +88,7 @@ class StockTwitsApi():
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
 
+    @pm.decorator_timer(1) #1 is for stocktwits in `self.comment_source` in `initialise.py`
     def webscrap(self):
         """Performs all the method necessary to webscrap the content on stocktwits and analyse the mood of the
         comments"""
