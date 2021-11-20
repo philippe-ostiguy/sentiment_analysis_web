@@ -36,6 +36,7 @@ from initialize import InitProject
 from datetime import datetime, timedelta, time, date
 import perform_stats as ps
 import stock_to_trade as stt
+import time
 
 class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary
@@ -77,7 +78,7 @@ class InitMain(InitProject):
 if __name__ == '__main__':
     init = InitMain()
     init()
-
+    start_time = time.time()
     #decide which stock we webscrap
     stt_ = stt.StockToTrade(init)
     stt_()
@@ -104,7 +105,7 @@ if __name__ == '__main__':
 
     for stock,keywords in init.stock_dictionnary.items():
         init.current_stock = stock #changing to current stock in loop
-
+        init.pd_stock_sentiment.drop(init.pd_stock_sentiment.index, inplace=True) #drop values in the pandas Dataframe
         # fetching the data on social media and twitter
 
         # return the comments with sentiment analysis using Twitter-based Roberta Transformer on reddit, twitter,
@@ -116,7 +117,8 @@ if __name__ == '__main__':
         #calculate the metrics
         init = cm()
 
-
+    end_time = time.time()
+    total_time = end_time - start_time
     t = 5
 
 

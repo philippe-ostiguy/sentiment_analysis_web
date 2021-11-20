@@ -63,13 +63,13 @@ class CalculateMetrics():
     def nb_comments(self,source):
         """Number of twits/comments per source (reddit, twitter, stocktwits)"""
 
-        self.init.pd_metrics.loc[self.init.current_stock,self.init.columns_metrics[3] + source] \
+        self.init.pd_metrics.loc[self.init.current_stock,self.init.columns_metrics[4] + source] \
             = int(len(self.pd_subset.index))
 
     @loop_source
     def average_sentiment(self,source):
         """Average sentiment mood per source (reddit, twitter, stocktwits)"""
-        self.init.pd_metrics.loc[self.init.current_stock, self.init.columns_metrics[2] + source] \
+        self.init.pd_metrics.loc[self.init.current_stock, self.init.columns_metrics[3] + source] \
             = self.pd_subset[self.init.columns_sentiment[1]].mean()
 
     def total_comments(self):

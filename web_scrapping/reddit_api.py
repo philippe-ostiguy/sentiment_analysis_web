@@ -307,10 +307,14 @@ class RedditApi_():
             try:
                 button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
                 button_click.click()
+                i-=1
 
             except:
                 pass
-            break
+
+
+            i+=1
+
 
 
 
