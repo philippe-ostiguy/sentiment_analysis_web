@@ -83,7 +83,8 @@ class RedditApi_():
             Endpoint of the stock we want to webscrap
         `self.min_replies` : int
             minimum of reply in reddit to click on it. Ex : we don't want to click on all the '1 more reply' as it takes
-            times
+            times. It has to be under 1000, otherwise we need to do modifications in method `self.rejected_replies()`.
+            In Reddit, any comments above 1000 are written with a ','. Ex: 1,000 more replies
         `self.date_` : str
             date until which we webscrap data
         `self.buffer_time_size` : int
@@ -128,6 +129,8 @@ class RedditApi_():
         self.min_replies = 100
         self.min_reply_list = []  # associated list with the `self.min_replies` attribute
         self.rejected_replies_list = ""  # list of MoreComments buttons we don't click on it. It depends of
+        self.rejected_replies_list_ = [] #second list of rejected replies that we don't click on. This is the second
+                                        #check
         self.buffer_time_size = 10
         self.date__ = ""
         self.reddit_dict_ = {}
@@ -222,11 +225,13 @@ class RedditApi_():
         while i < self.min_replies:
             if i == 1:
                 self.rejected_replies_list += ''.join([' and not(./div/p/text() = ', '"', str(i), ' more reply', '")'])
+                self.rejected_replies_list_.append(str(i) + ' more reply')
             else:
                 self.rejected_replies_list += ''.join(
                     [' and not(./div/p/text() = ', '"', str(i), ' more replies', '")'])
-
+                self.rejected_replies_list_.append(str(i) + ' more replies')
             i += 1
+
 
     def loop_reddit_post(func):
         """ Decorator that web-scrap content on all reddit posts that we choose using Selenium """
@@ -234,7 +239,8 @@ class RedditApi_():
         def wrapper_(self):
 
             for url_post in self.reddit_posts_url:
-                self.init.driver.get(url_post)
+                #self.init.driver.get(url_post)
+                self.init.driver.get('https://www.reddit.com/r/wallstreetbets/comments/qxux0t/not_excited_for_tax_season/')
                 time.sleep(2)
                 func(self)
                 self.reddit_comments += [comment.text for comment in self.init.driver.find_elements_by_xpath(
@@ -286,6 +292,7 @@ class RedditApi_():
         button_click_text = '//div[@class = "{}" and (contains(@id,"moreComments"))'.format(self.class_more_comments) \
                             + self.rejected_replies_list
         i = 1
+        nb_replies = ''
 
         while not element:
 
@@ -303,18 +310,42 @@ class RedditApi_():
                     button_click.click()
 
                 except:
-                    break
+                    #make sure we click on all required 'MoreComments' buttons
+                    comment_found = False
+                    for replies in self.rejected_replies_list_:
+                        if replies == nb_replies and not replies:
+                            comment_found = True
+                            break
+
+                    if not comment_found:
+                        raise Exception(f'In `reddit_api.py`, it did not click all required "More Comments"')
+
+                    else :
+                        break
 
             # Check if there is a button 'MoreComments' and click on it to load more comments
             try:
                 button_click = wait.until(EC.presence_of_element_located((By.XPATH, button_click_text + ']')))
+                nb_replies = button_click.text
+                while 'loading' in nb_replies:
+                    time.sleep(2)
+                    nb_replies = button_click.text
                 button_click.click()
                 i-=1
 
             except:
                 pass
 
-            break
+            if i ==10:
+                comment_found = False
+                for replies in self.rejected_replies_list_:
+                    if replies == nb_replies:
+                        comment_found = True
+                        break
+
+                if not comment_found and not replies:
+                    raise Exception(f'In `reddit_api.py`, it did not click all required "More Comments"')
+                break
             i+=1
 
 
