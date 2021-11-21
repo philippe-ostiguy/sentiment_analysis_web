@@ -200,14 +200,14 @@ class InitProject():
 
         # Options for Chrome Driver
         option = Options()
-        #option.add_argument("--disable-infobars")
-        #option.add_argument("start-maximized")
-        option.headless = True
-        #option.add_argument("--disable-extensions")
+        option.add_argument("--disable-infobars")
+        option.add_argument("start-maximized")
+        #option.headless = True
+        option.add_argument("--disable-extensions")
         # Pass the argument 1 to allow notifications and 2 to block them
-        #option.add_experimental_option("prefs", {
-        #    "profile.default_content_setting_values.notifications": 2
-        #})
+        option.add_experimental_option("prefs", {
+            "profile.default_content_setting_values.notifications": 2
+        })
 
         self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
         #profile = webdriver.FirefoxProfile()
