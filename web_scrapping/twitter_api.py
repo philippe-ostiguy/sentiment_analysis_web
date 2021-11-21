@@ -123,7 +123,6 @@ class TwitsApi():
         if time_ago < 24:
             self.date_ = ''.join([str(time_ago),'h'])
         else:
-
             # Write the day in Xpath format for Twitter
             text = [str(start_time.strftime('%b')), str(start_time.day)]
             self.date_ = (' '.join(text))
@@ -139,8 +138,8 @@ class TwitsApi():
         tempo_time = self.init.time_ago
         while iteration < self.buffer_date_:
             #less than 24 hours
-            if (iteration - 1 + self.time_ago)<24:
-                self.convert_time(iteration-1+self.time_ago)
+            if (iteration - 1 + self.init.time_ago)<24:
+                self.convert_time(iteration-1+self.init.time_ago)
             else:
                 self.convert_time(j*24 + 24)  # multiply iteration by 24 to have in day
                 j+=1
@@ -150,7 +149,6 @@ class TwitsApi():
             else:
                 self.date__ += ''.join([' or @aria-label = ','"', self.date_, '"'])
             iteration += 1
-
 
     def loop_twits(func):
         """Decorator to loop throught the comments that we webscrap"""

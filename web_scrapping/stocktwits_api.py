@@ -39,7 +39,12 @@ from collections import defaultdict
 import web_scrapping.package_methods as pm
 
 class StockTwitsApi():
-    """Class to webscrap content on Stocktwits """
+    """Class to webscrap content on Stocktwits.
+
+     Things to know:
+     - Method `self.buffer_date_` is built to search post published on the same date. Some developing may be required
+     if we want to search from a date different from today.
+     """
 
     def __init__(self,init,init_sentiment):
 
@@ -58,9 +63,9 @@ class StockTwitsApi():
         `self.class_directional` : str
             Name of the class with the directional (bull or bear)
         `self.time_ago` : int
-            Number of hours in the past we want to webscrape the data. The value must be 24 hours or more or it
-            the webscrapping of data will not work properly. If we want to set a value between 1 hour and 24 hours, we
-            must review the function `self.convert_time()`
+            Number of hours in the past we want to webscrape the data. At the moment, we search for post
+             published during the same day. If we want to search previous date, we would need to adjust the function
+             `self.buffer_date_()`
         `self.stock_endpoint` : str
             Endpoint of the stock we want to webscrap
         `self.buffer_date_` : int
@@ -79,6 +84,7 @@ class StockTwitsApi():
         self.class_directional = 'lib_XwnOHoV lib_3UzYkI9 lib_lPsmyQd lib_2TK8fEo' #bull or bear
 
         self.date_ = '' #date if different from today in the Xpath
+        self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
         self.stock_twits = "" #contains the twit fetched from stocktwits (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
         self.buffer_date_ = 40
@@ -86,8 +92,8 @@ class StockTwitsApi():
     def __call__(self):
         """built-in function to initialize values"""
 
-        self.convert_time()
-        self.date_to_search = '//a[@class="{}" and contains(text(),"{}")]'.format(self.class_time, self.date_)
+        self.buffer_date()
+        self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
 
@@ -104,50 +110,66 @@ class StockTwitsApi():
         return self.write_values()
 
 
-    def convert_time(self):
+    def convert_time(self,search_time,is_today):
         """Method to convert time readable in the Xpath in Selenium.
         """
 
-        now = datetime.now()  # get the current datetime, this is our starting point
-        start_time = now - timedelta(hours=self.init.time_ago)  # datetime according to the number of the days ago we want
+        text = ''
+       #current search time is today
+        if is_today:
+            if search_time.hour >= 12:
+               period_of_day = ' PM'
+            else:
+               period_of_day = ' AM'
 
-        #Write the day in Xpath format for stocktwits
-        text = [str(start_time.month), str(start_time.day),start_time.strftime('%y')]
-        self.date_ = ('/'.join(text))
+            hour =search_time.hour
+            if hour == 0:
+                hour = 12
+
+            minute = search_time.minute
+            if minute <10:
+                minute_ = '0' + str(minute)
+            else :
+                minute_ = str(minute)
+
+            text = [str(hour),':', minute_,period_of_day]
+            self.date_ = ''.join(text)
+
+        else:
+            #Write the day in Xpath format for stocktwits
+            text = [str(search_time.month), str(search_time.day),search_time.strftime('%y')]
+            self.date_ = ('/'.join(text))
 
     def buffer_date(self):
         """ Method to make a list of date we can click on. It's a buffer to make sure that we don't scroll forever.
          Ex : We are looking for 'Nov 10' on a stock, but the volume is low, we may find data before, but not exactly
          on November 10. It depends on the size of the buffer `self.buffer_date_`
-        """
 
-        iteration = 1
+         In Stocktwits, We write the time minutes by minutes until we reach yesterday's time. We start seeing the
+         date in Stocktwits starting from yesterday only. Ex: If yesterday is Nov 20, then all posts from today won't
+         have a date in the class time (only hours and minutes ago it was published. However, starting from November
+         20 and before, we will see 'Nov 20', 'Nov 19', etc.
+        """
 
         tempo_time = self.init.time_ago
         now = datetime.now()
-        today = date.today()
-
-        yesterday = today - timedelta(days=1)
+        period_of_day=''
+        yesterday = now - timedelta(days=1)
         search_time = now - timedelta(hours=self.init.time_ago)
-        y = yesterday.day
-        s = now.day
 
+        iteration = 1
+        #we need to write minute by minute to search time in stocktwits as time in post show the minutes.
+        #Ex : 10:05 AM
         while(yesterday.day != search_time.day):
-            pass
-
-        while iteration < self.buffer_date_:
-            #less than 24 hours
-            if (iteration - 1 + self.time_ago)<24:
-                self.convert_time(iteration-1+self.time_ago)
-            else:
-                self.convert_time(j*24 + 24)  # multiply iteration by 24 to have in day
-                j+=1
-
+            self.convert_time(search_time,True)
             if iteration == 1:
-                self.date__ += ''.join(['@aria-label = ','"', self.date_, '"'])
+                self.date__ += ''.join(['contains(text(),', '"', self.date_, '")'])
             else:
-                self.date__ += ''.join([' or @aria-label = ','"', self.date_, '"'])
-            iteration += 1
+                self.date__ += ''.join([' or contains(text(),', '"', self.date_, '")'])
+
+            search_time-=timedelta(minutes=1)
+            iteration +=1
+
 
     def loop_twits(func):
         """Decorator to loop throught the comments that we webscrap"""

@@ -75,9 +75,9 @@ class InitProject():
             chance of a negative sentiment and +1 with a 100% of a positive sentiment. Directional is applicable only
             for Stockwits (user can choose 'bullish' or 'bearish' when creating a twit).
         `self.time_ago` : int
-            Number of hours in the past we want to webscrape the data.By default, the value is 24, and should not
-            be changed. If it is changed, the funciton `self.set_time_ago()` should be reviewed. See module
-            `reddit_api.py` for more info and search for the variable `self.time_ago`
+            Number of hours in the past we want to webscrape the data.By default, the value is for the same day.
+            If we want to search previous date, we would need to adjust the function `self.buffer_date_()` in
+            `stocktwits_api.py` and `twitter_api.py`
         `self.us_holidars` : list
             List that contains the US Stock Holiday
         `self.pd_stock_sentiment` : pandas.DataFrame
@@ -132,7 +132,7 @@ class InitProject():
         self.get_us_holiday()
         self.init_driver()
         self.init_timer()
-        self.set_time_ago()
+        #self.set_time_ago()
         self.create_columns()
 
     def init_timer(self):
