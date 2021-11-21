@@ -324,8 +324,8 @@ class RedditApi_():
             i+=1
         #check if the browser did not click on all the 'required' buttons 'more replies'
         existing_post += [post.text for post in self.init.driver.find_elements_by_xpath(button_click_text)]
-        #if existing_post:
-         #   raise Exception("Error the driver did not click on all 'required' button (load more replies)")
+        if existing_post:
+            raise Exception("Error the driver did not click on all 'required' button (load more replies)")
 
 
 
