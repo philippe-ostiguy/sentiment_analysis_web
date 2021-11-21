@@ -63,6 +63,8 @@ class StockTwitsApi():
             must review the function `self.convert_time()`
         `self.stock_endpoint` : str
             Endpoint of the stock we want to webscrap
+        `self.buffer_date_` : int
+            Size of the buffer to search date for in function `self.buffer_date_`
         """
 
         #We should touch these data. They come from the classes where we initialize the data
@@ -79,6 +81,7 @@ class StockTwitsApi():
         self.date_ = '' #date if different from today in the Xpath
         self.stock_twits = "" #contains the twit fetched from stocktwits (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
+        self.buffer_date_ = 40
 
     def __call__(self):
         """built-in function to initialize values"""
@@ -111,6 +114,40 @@ class StockTwitsApi():
         #Write the day in Xpath format for stocktwits
         text = [str(start_time.month), str(start_time.day),start_time.strftime('%y')]
         self.date_ = ('/'.join(text))
+
+    def buffer_date(self):
+        """ Method to make a list of date we can click on. It's a buffer to make sure that we don't scroll forever.
+         Ex : We are looking for 'Nov 10' on a stock, but the volume is low, we may find data before, but not exactly
+         on November 10. It depends on the size of the buffer `self.buffer_date_`
+        """
+
+        iteration = 1
+
+        tempo_time = self.init.time_ago
+        now = datetime.now()
+        today = date.today()
+
+        yesterday = today - timedelta(days=1)
+        search_time = now - timedelta(hours=self.init.time_ago)
+        y = yesterday.day
+        s = now.day
+
+        while(yesterday.day != search_time.day):
+            pass
+
+        while iteration < self.buffer_date_:
+            #less than 24 hours
+            if (iteration - 1 + self.time_ago)<24:
+                self.convert_time(iteration-1+self.time_ago)
+            else:
+                self.convert_time(j*24 + 24)  # multiply iteration by 24 to have in day
+                j+=1
+
+            if iteration == 1:
+                self.date__ += ''.join(['@aria-label = ','"', self.date_, '"'])
+            else:
+                self.date__ += ''.join([' or @aria-label = ','"', self.date_, '"'])
+            iteration += 1
 
     def loop_twits(func):
         """Decorator to loop throught the comments that we webscrap"""

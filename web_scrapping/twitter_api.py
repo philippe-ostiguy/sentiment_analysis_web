@@ -75,7 +75,7 @@ class TwitsApi():
                           'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
         self.class_twits = 'css-901oao r-18jsvk2 r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0'
 
-        self.buffer_date_ = 30
+        self.buffer_date_ = 40
         self.date_ = ''  # date if different from today in the Xpath
         self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
         self.twits = ""  # contains the twit fetched from Twitter (text, date, directional ie bullish or bearish)
@@ -104,17 +104,29 @@ class TwitsApi():
         return self.write_values()
 
 
-    def convert_time(self,iteration):
+    def convert_time(self,time_ago):
         """Method to convert time readable in the Xpath in Selenium.
+
+        Parameters
+        ----------
+        `time_ago` : int
+            Time ago we want to webscrap the data
         """
 
         now = datetime.now()  # get the current datetime, this is our starting point
         # datetime according to the number of the days ago we want
-        start_time = now - timedelta(hours=(self.init.time_ago + iteration - 24))
+        start_time = now - timedelta(hours=(time_ago))
 
-        # Write the day in Xpath format for Twitter
-        text = [str(start_time.strftime('%b')), str(start_time.day)]
-        self.date_ = (' '.join(text))
+        #less than 24 hours ago, the format for dates is different than more than 24 hours.
+        #Ex: It will show as '23h' (for 23 hours ago) and 'Nov 29' (example) for more than 24 hours
+
+        if time_ago < 24:
+            self.date_ = ''.join([str(time_ago),'h'])
+        else:
+
+            # Write the day in Xpath format for Twitter
+            text = [str(start_time.strftime('%b')), str(start_time.day)]
+            self.date_ = (' '.join(text))
 
     def buffer_date(self):
         """ Method to make a list of date we can click on. It's a buffer to make sure that we don't scroll forever.
@@ -123,9 +135,16 @@ class TwitsApi():
         """
 
         iteration = 1
+        j=0
+        tempo_time = self.init.time_ago
         while iteration < self.buffer_date_:
+            #less than 24 hours
+            if (iteration - 1 + self.time_ago)<24:
+                self.convert_time(iteration-1+self.time_ago)
+            else:
+                self.convert_time(j*24 + 24)  # multiply iteration by 24 to have in day
+                j+=1
 
-            self.convert_time(iteration*24) #multiply iteration by 24 to have in day
             if iteration == 1:
                 self.date__ += ''.join(['@aria-label = ','"', self.date_, '"'])
             else:
