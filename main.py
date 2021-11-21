@@ -84,9 +84,6 @@ if __name__ == '__main__':
     stt_ = stt.StockToTrade(init)
     stt_()
 
-    init_roberta = sa.TwitAnalysis(init)
-    init_roberta() #built-in call method to initialize the model
-
     #initialize the Roberta sentiment analysis
     init_roberta = sa.TwitAnalysis(init)
     init_roberta() #built-in call method to initialize the model
@@ -102,7 +99,7 @@ if __name__ == '__main__':
     cm = ps.CalculateMetrics(init)
 
     #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
-    ra_.webscrap()
+    #ra_.webscrap()
 
     for stock,keywords in init.stock_dictionnary.items():
         init.current_stock = stock #changing to current stock in loop
@@ -112,7 +109,7 @@ if __name__ == '__main__':
         # return the comments with sentiment analysis using Twitter-based Roberta Transformer on reddit, twitter,
         #stocktwits
 
-        init.pd_stock_sentiment = ra_.write_values()
+        #init.pd_stock_sentiment = ra_.write_values()
         init.pd_stock_sentiment =  sta_.webscrap()
         init.pd_stock_sentiment = ta.webscrap()
 

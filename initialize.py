@@ -227,17 +227,16 @@ class InitProject():
             self.check_weekend = True  # fetching data on the 'weekend discussion' in wallstreetbet
 
         # check if yesterday was a holiday
-        if ((yesterday.month in [date_.month for date_ in self.us_holidays]) and
-                (yesterday.year in [date_.year for date_ in self.us_holidays]) and
-                (yesterday.day in [date_.day for date_ in self.us_holidays])):
+        for date_ in self.us_holidays:
+            if ((yesterday.month == date_.month) and (yesterday.year == date_.year) and
+                    (yesterday.day == date_.day)):
+                # if current days is Tuesday, then 2 days before was the weekend
+                if date.today().weekday() == 1:
+                    self.time_ago += 48
+                    self.check_weekend = True  # fetching data on the 'weekend discussion' in wallstreetbet
 
-            # if current days is Tuesday, then 2 days before was the weekend
-            if date.today().weekday() == 1:
-                self.time_ago += 48
-                self.check_weekend = True  # fetching data on the 'weekend discussion' in wallstreetbet
-
-            else:
-                self.time_ago += 24
+                else:
+                    self.time_ago += 24
 
 class InitNewsHeadline():
     """Class that initializes global value for the module for sentiment analysis of news headline.
