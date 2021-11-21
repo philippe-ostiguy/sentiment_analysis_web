@@ -92,7 +92,7 @@ if __name__ == '__main__':
     init_roberta() #built-in call method to initialize the model
 
     #initialize all classes we want to webscrap data
-    ra_ = ws.RedditApi_(init, init_roberta) # Reddit
+    #ra_ = ws.RedditApi_(init, init_roberta) # Reddit
     sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
     sta_()
     ta = ws.TwitsApi(init, init_roberta) # Twitter
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         init = cm()
 
     t = 5
-    init.pd_stock_sentiment = ra_.write_values()
+
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
 
