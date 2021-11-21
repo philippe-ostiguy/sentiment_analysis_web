@@ -162,7 +162,8 @@ class RedditApi_():
         #This if for the posts that we webscrap data from Tuesday to Friday
         self.init.driver.get(self.daily_discussion_url)
         time.sleep(2)
-        element_to_search = '//a[contains(@class,"{}") and ({})]'.format(self.class_post,self.date__)
+        element_to_search = '//a[contains(@class,"{}") and @data-click-id="timestamp" and ({})]'\
+            .format(self.class_post,self.date__)
         #posts url
         self.reddit_posts_url += [post.get_attribute("href") for post in
                                    self.init.driver.find_elements_by_xpath(element_to_search)]
@@ -323,8 +324,8 @@ class RedditApi_():
             i+=1
         #check if the browser did not click on all the 'required' buttons 'more replies'
         existing_post += [post.text for post in self.init.driver.find_elements_by_xpath(button_click_text)]
-        if existing_post:
-            raise Exception("Error the driver did not click on all 'required' button (load more replies)")
+        #if existing_post:
+         #   raise Exception("Error the driver did not click on all 'required' button (load more replies)")
 
 
 
