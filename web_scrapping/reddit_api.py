@@ -264,7 +264,7 @@ class RedditApi_():
                             func(self,comment)
                             break # not analyzing the same post twice (in case we have more than 1 keyword)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
-                (subset=self.init.columns_sentiment[0], keep="first")
+                (subset=self.init.columns_sentiment[0], keep="first",ignore_index=True)
             return self.init.pd_stock_sentiment
         return wrapper_
 

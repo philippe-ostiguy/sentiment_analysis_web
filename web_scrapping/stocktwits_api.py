@@ -141,7 +141,7 @@ class StockTwitsApi():
                 func(self, twit_tempo)
 
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
-                (subset=self.init.columns_sentiment[0], keep="first")
+                (subset=self.init.columns_sentiment[0], keep="first",ignore_index=True)
             return self.init.pd_stock_sentiment
         return wrapper_
 
