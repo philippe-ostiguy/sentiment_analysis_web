@@ -110,7 +110,7 @@ class InitProject():
                                 "Average sentiment for ", "Nb of comments for "]
         self.comment_source = ['reddit','stocktwit','twitter']
         self.keywords_to_remove = [' Inc.',' INC',' Inc', ' Corporation', ' Corp.', ' Corp', ' Co', ' Ltd', ' ltd',',']
-        self.time_ago = 6
+        self.time_ago = 4
         self.pause_time = 2
 
         # list of variables that we should not set ourself
