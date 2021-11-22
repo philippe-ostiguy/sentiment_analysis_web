@@ -245,8 +245,6 @@ class RedditApi_():
                 func(self)
                 self.reddit_comments += [comment.text for comment in self.init.driver.find_elements_by_xpath(
                     "//div[contains(@class,'{}')]".format(self.class_comments))]
-                os.system(f'say -v "Victoria" "Mother Fucker"')
-                t = 5
         return wrapper_
 
     def loop_comments(func):

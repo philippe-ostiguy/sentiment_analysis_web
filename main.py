@@ -116,6 +116,7 @@ if __name__ == '__main__':
         #calculate the metrics
         init = cm()
 
+    os.system(f'say -v "Victoria" "The program is done. You can check it out."')
     t = 5
 
 
