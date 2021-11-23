@@ -210,8 +210,8 @@ class InitProject():
         })
 
         self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
-        #profile = webdriver.FirefoxProfile()
-        #profile.set_preference('intl.accept_languages', 'en-US, en')
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference('intl.accept_languages', 'en-US, en')
         #self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
 
     def set_time_ago(self):

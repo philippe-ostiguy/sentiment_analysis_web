@@ -37,6 +37,9 @@ from datetime import datetime, timedelta, time, date
 import perform_stats as ps
 import stock_to_trade as stt
 import time
+import sys
+import os
+
 
 class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary

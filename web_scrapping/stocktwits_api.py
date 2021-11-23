@@ -181,20 +181,17 @@ class StockTwitsApi():
                 bullish = 'Bullish'
                 bearish = 'Bearish'
 
+                #ICI
                 # check if it contains bullish or bearish or not in the class
                 # then we are able to extract the twit only
-                if bullish in twit.text or bearish in twit.text:
-                    twit_tempo = twit.text.split('\n', 3)[3:][0]
+
+                twit_directional = twit.text.split('\n')[1:2][0]
+                if bullish in twit_directional or bearish in twit_directional:
+                    twit_tempo = twit.text.split('\n', 3)[3:4][0]
+                    self.twit_dictionary[self.init.columns_sentiment[2]] =twit_directional
 
                 else:
-                    twit_tempo = twit.text.split('\n', 2)[2:][0]
-
-                directional = re.search('\n(.*)\n', twit.text)  # searching for 'bearish' or 'bullish' in the twit
-                # If 'Bullish' or 'bearish', set the column 'directional to 'bullish or 'bearish accordindly.
-                if (directional.group(1) == 'Bearish' or directional.group(1) == 'Bullish'):
-                    self.twit_dictionary[self.init.columns_sentiment[2]] = directional.group(1)
-                # If the directional is not mentioned, then `directional.group(1)` is the 'time_published'
-                else:
+                    twit_tempo = twit.text.split('\n', 2)[2:3][0]
                     self.twit_dictionary[self.init.columns_sentiment[2]] = ''
 
                 func(self, twit_tempo)
