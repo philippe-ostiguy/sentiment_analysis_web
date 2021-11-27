@@ -119,7 +119,6 @@ class InitProject():
         self.current_stock = '' #current stock we webscrap
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
         self.driver = "" #driver in Selenium to webscrap data
-        self.driver_file_name = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
         self.check_weekend = False # False per default.
         self.pd_metrics = pd.DataFrame()
@@ -209,7 +208,7 @@ class InitProject():
             "profile.default_content_setting_values.notifications": 2
         })
 
-        self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file_name)
+        self.driver = webdriver.Chrome(chrome_options=option, executable_path=ChromeDriverManager().install())
         profile = webdriver.FirefoxProfile()
         profile.set_preference('intl.accept_languages', 'en-US, en')
         #self.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
