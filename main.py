@@ -60,6 +60,7 @@ class InitMain(InitProject):
         init = InitProject()
         init()
         self.driver = init.driver
+        self.driver_ff = init.driver_ff
         self.time_ago = init.time_ago
         self.us_holidays = init.us_holidays
         self.pd_metrics = init.pd_metrics
@@ -113,7 +114,7 @@ if __name__ == '__main__':
         #stocktwits
 
         #init.pd_stock_sentiment = ra_.write_values()
-        #init.pd_stock_sentiment =  sta_.webscrap()
+        init.pd_stock_sentiment =  sta_.webscrap()
         init.pd_stock_sentiment = ta.webscrap()
 
         #calculate the metrics

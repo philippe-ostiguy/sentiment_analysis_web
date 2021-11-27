@@ -44,6 +44,8 @@ class StockTwitsApi():
      Things to know:
      - Method `self.buffer_date_` is built to search post published on the same date. Some developing may be required
      if we want to search from a date different from today.
+    - In headless mode, we need to use Chrome browser from Selenium to make it works (Firefox doesn't work)
+
      """
 
     def __init__(self,init,init_sentiment):
