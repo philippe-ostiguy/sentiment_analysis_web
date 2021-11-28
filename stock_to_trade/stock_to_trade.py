@@ -28,6 +28,7 @@
 
 import requests
 import string
+import bs4 as bs
 
 class StockToTrade():
     """Class to decide which stock we webscrap data"""
@@ -74,6 +75,40 @@ class StockToTrade():
             i+=1
             if i == self.nb_trending:
                 break
+
+    def shorted_stocks(self):
+        """Method to get the most shorted stock on https://www.highshortinterest.com/. See begginning of this module
+        to understand the parameters used in this method"""
+
+    resp = requests.get('https://www.highshortinterest.com/')
+    soup = bs.BeautifulSoup(resp.text, 'lxml')
+    # Grab the table with the US Stock holidays (first table)
+    table = soup.find_all('table', {'class': 'stocks'})[0]
+    if table == []:
+        raise Exception("Table to get the most shorted stock in `self.shorted_stocks()` doesn't exist")
+
+    for rows in table.findAll('tr')[:1]:
+        #getting the short interest
+        for cell in rows.findAll('th')[3:4]:
+            #remove the '%' mark
+            short_interest = int(cell.replace('%',''))
+            #check if current short interest is below our minimum 'acceptable' thresold
+            if short_interest < self.init.min_short:
+                short_below = True
+                break
+
+        if short_below:
+            break
+
+        #getting the ticker
+        for cell in rows.findAll('th')[0:1]:
+            short_interest = cell
+
+        #getting the company name
+        for cell in rows.findAll('th')[1:2]:
+            short_interest = cell
+
+
 
     def adjust_keywords(self,symbol,stock_name):
         """Method that adjust the keyword for the stock we are searching on Reddit so that they can be found easily.

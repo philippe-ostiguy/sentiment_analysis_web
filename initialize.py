@@ -99,9 +99,14 @@ class InitProject():
             source of comments/twits that we analyse the sentiment
         `self.pd_metrics` : pandas.DataFrame
             Pandas Dataframe with metrics from the results. Ex: Nb of comments, average sentiment per social media, etc.
-        `self.keywords_to_remove` : list of keyword to remove when we search for a stock on Reddit. Ex: we know that
+        `self.keywords_to_remove` : list
+            list of keyword to remove when we search for a stock on Reddit. Ex: we know that
             'Apple' is named 'Apple Inc.'. We want to remove the 'Inc' so that we only search for 'Apple' on reddit
-        `self.total_comments` : total comments for reddit
+        `self.total_comments` : int
+            total comments for reddit
+        `self.min_short` : int
+            minimum acceptable thresold for shorted stocks. Ex: we will only webscrap data for a shorted stock if
+            he has 30% of outstanding shares shorted.
         """
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
@@ -113,6 +118,7 @@ class InitProject():
         self.keywords_to_remove = [' Inc.',' INC',' Inc', ' Corporation', ' Corp.', ' Corp', ' Co', ' Ltd', ' ltd',',']
         self.time_ago = 6
         self.pause_time = 2
+        self.min_short = 30
 
         # list of variables that we should not set ourself
         self.us_holidays = []
@@ -206,7 +212,7 @@ class InitProject():
         option.add_argument("--disable-extensions")
         option.add_argument("--headless")
         option.add_argument("--no-sandbox")
-        option.add_argument("--single-process")
+        #option.add_argument("--single-process")
 
         # Pass the argument 1 to allow notifications and 2 to block them
         #option.add_experimental_option("prefs", {
@@ -215,11 +221,12 @@ class InitProject():
         self.driver = webdriver.Chrome(chrome_options=option, executable_path=ChromeDriverManager().install())
 
         option_ff = opFireFox()
-        option_ff.headless = True
+        #option_ff.headless = True
+        option_ff.add_argument("--headless")
         profile = webdriver.FirefoxProfile()
         profile.set_preference('intl.accept_languages', 'en-US, en')
-        self.driver_ff = webdriver.Firefox(executable_path=GeckoDriverManager().install(),options = option_ff,
-                                        firefox_profile=profile)
+        self.driver_ff = webdriver.Firefox(options = option_ff,firefox_profile=profile,
+                                           executable_path=GeckoDriverManager().install())
 
     def set_time_ago(self):
         """Modifiy `self.time_ago` depending if the current day is Monday (so that previous days are the weekend)
