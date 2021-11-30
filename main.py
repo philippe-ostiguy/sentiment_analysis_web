@@ -40,7 +40,6 @@ import time
 import sys
 import os
 
-
 class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary
      """

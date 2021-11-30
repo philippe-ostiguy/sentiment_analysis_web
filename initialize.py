@@ -39,7 +39,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options as opChrome
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.options import Options as opFireFox
-
+from decouple import config
 
 def get_tickers():
     """Method that gets the stock symbols from companies listed in the S&P 500
@@ -88,7 +88,9 @@ class InitProject():
             the post. The items are one list per stock (key). This is the whole list we want to webscrap
             For reddit, we are searching with the keywords (values), whereas in Stocktwits and Twitter only with the
             key (ticker). On twitter and stocktwits, URL are based on the 'ticker', ex :
-            https://twitter.com/search?q=%24gib&src=typed_query&f=live. On Reddit, we search by keyword on a post
+            https://twitter.com/search?q=%24gib&src=typed_query&f=live.
+            If we know some stocks we want to webscrap, we must enter it as a ticker as a string (capitalisation) with
+            the company name as a string. Ex: self.stock_dictionary = {'TSLA' : 'Tesla'}
         `self.current_stock` : dict
             current dictionary of `self.stockdictionary` we are webscrapping data on the social media
         `self.pause_time` : long
@@ -107,6 +109,10 @@ class InitProject():
         `self.min_short` : int
             minimum acceptable thresold for shorted stocks. Ex: we will only webscrap data for a shorted stock if
             he has 30% of outstanding shares shorted.
+        `self.min_cap` : int
+            minimum stock capitalization to webscrap data. Ex: below 500M$ market cap, we don't webscrap
+        `self.av_key` : str
+            API key for Alpha Vantage
         """
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
@@ -119,10 +125,11 @@ class InitProject():
         self.time_ago = 6
         self.pause_time = 2
         self.min_short = 30
+        self.min_cap = 500*10**6
+        self.stock_dictionnary = {'TSLA' : 'Tesla'}
 
         # list of variables that we should not set ourself
         self.us_holidays = []
-        self.stock_dictionnary = {} #this will be changed later and set automatically
         self.current_stock = '' #current stock we webscrap
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
         self.driver = "" #driver in Selenium to webscrap data (chrome)
@@ -132,6 +139,7 @@ class InitProject():
         self.pd_metrics = pd.DataFrame()
         self.pd_timer = pd.DataFrame(columns=self.comment_source)
         self.total_comments = []
+        self.av_key = config('AV_KEY')
 
     def __call__(self):
 

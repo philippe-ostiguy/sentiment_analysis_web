@@ -54,8 +54,35 @@ class StockToTrade():
 
 
     def __call__(self):
+        #if we already know some stock we want to webscrap data. Set in `self.stock_dictionary` in `initialise.py`
+        for ticker in self.init.stock_dictionnary:
+            self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
         self.get_trending()
-        t = 5
+        self.shorted_stocks()
+        self.check_cap()
+        t=5
+
+
+    def check_cap(self):
+        """make sure the stocks has the minimum desired market cap. If not it is remove form the stock we want
+        to webscrap"""
+        tempo_dict = self.init.stock_dictionnary.copy()
+
+        for ticker in self.init.stock_dictionnary:
+            url = ''.join(['https://www.alphavantage.co/query?function=OVERVIEW&symbol=',ticker,'&apikey=',
+                           self.init.av_key])
+            response = requests.get(url)
+
+            #stock doesn't exist in Alphavantage for this API call
+            if not bool(response.json()):
+                tempo_dict.pop(ticker, None)
+                continue
+
+            data = float(response.json()["MarketCapitalization"])
+            if data < self.init.min_cap:
+                tempo_dict.pop(ticker, None)
+
+        self.init.stock_dictionnary = tempo_dict
 
     def get_trending(self):
         """Function to get the most trending stock on Stock Twits
@@ -68,9 +95,10 @@ class StockToTrade():
         for stock in response.json()['symbols']:
             symbol = self.get_data(stock,['symbol'])
             stock_name =  self.get_data(stock,['title'])
-            self.init.stock_dictionnary[symbol] = self.adjust_keywords(symbol,stock_name)
-            #self.init.stock_dictionnary
-            #self.trending_stocks = self.trending_stocks.append(row, ignore_index=True)
+            #make sure the ticker doesn't already in our list of stocks we want to webscrap before adding it to the list
+            if not symbol in self.init.stock_dictionnary:
+                self.adjust_keywords(symbol,stock_name)
+
             #we reached the nb of trending stocks we wanted
             i+=1
             if i == self.nb_trending:
@@ -80,35 +108,42 @@ class StockToTrade():
         """Method to get the most shorted stock on https://www.highshortinterest.com/. See begginning of this module
         to understand the parameters used in this method"""
 
-    resp = requests.get('https://www.highshortinterest.com/')
-    soup = bs.BeautifulSoup(resp.text, 'lxml')
-    # Grab the table with the US Stock holidays (first table)
-    table = soup.find_all('table', {'class': 'stocks'})[0]
-    if table == []:
-        raise Exception("Table to get the most shorted stock in `self.shorted_stocks()` doesn't exist")
+        resp = requests.get('https://www.highshortinterest.com/')
+        soup = bs.BeautifulSoup(resp.text, 'lxml')
+        # Grab the table with the US Stock holidays (first table)
+        table = soup.find_all('table', {'class': 'stocks'})[0]
+        if table == []:
+            raise Exception("Table to get the most shorted stock in `self.shorted_stocks()` doesn't exist")
 
-    for rows in table.findAll('tr')[:1]:
-        #getting the short interest
-        for cell in rows.findAll('th')[3:4]:
-            #remove the '%' mark
-            short_interest = int(cell.replace('%',''))
-            #check if current short interest is below our minimum 'acceptable' thresold
-            if short_interest < self.init.min_short:
-                short_below = True
+        short_below = False
+        stock_exist = False
+        for rows in table.findAll('tr')[1:]:
+            #getting the short interest
+            for cell in rows.findAll('td')[3:4]:
+                #remove the '%' mark
+                short_interest = float(cell.text.replace('%',''))
+                #check if current short interest is below our minimum 'acceptable' thresold
+                if short_interest < self.init.min_short:
+                    short_below = True
+                    break
+            #exiting as the next stocks will have short interest lower than our minimum thresdol `self.init.min_short`
+            if short_below:
                 break
 
-        if short_below:
-            break
+            #getting the ticker
+            for cell in rows.findAll('td')[0:1]:
+                ticker = cell.text
+                #check if stock exist already in our list of stocks we want to webscrap
+                if ticker in self.init.stock_dictionnary:
+                    stock_exist = True
+            if stock_exist:
+                break
 
-        #getting the ticker
-        for cell in rows.findAll('th')[0:1]:
-            short_interest = cell
+            #getting the company name
+            for cell in rows.findAll('td')[1:2]:
+                stock_name = cell.text
 
-        #getting the company name
-        for cell in rows.findAll('th')[1:2]:
-            short_interest = cell
-
-
+            self.adjust_keywords(ticker,stock_name)
 
     def adjust_keywords(self,symbol,stock_name):
         """Method that adjust the keyword for the stock we are searching on Reddit so that they can be found easily.
@@ -141,7 +176,7 @@ class StockToTrade():
         #all letter of symbol in cap letter
         new_keywords.append(symbol.upper())
 
-        return new_keywords
+        self.init.stock_dictionnary[symbol] = new_keywords
 
     def get_data(self,dict, keys_):
         """Function that stores the data from a dictionary with the specific keys in a new dictionary
