@@ -80,6 +80,7 @@ class InitMain(InitProject):
          #   raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
+
     init = InitMain()
     init()
 
@@ -120,7 +121,8 @@ if __name__ == '__main__':
         init = cm()
 
     os.system(f'say -v "Victoria" "The program is done. You can check it out."')
-    t = 5
+    print(init.pd_metrics)
+    breakpoint()
 
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500

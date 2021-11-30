@@ -116,30 +116,6 @@ class StockToTrade():
 
         self.init.stock_dictionnary = tempo_dict
 
-    """
-    
-    def check_cap(self):
-
-        tempo_dict = self.init.stock_dictionnary.copy()
-
-        for ticker in self.init.stock_dictionnary:
-            url = ''.join(['https://www.alphavantage.co/query?function=OVERVIEW&symbol=',ticker,'&apikey=',
-                           self.init.av_key])
-            response = requests.get(url)
-            
-            #stock doesn't exist in Alphavantage for this API call
-            if not bool(response.json()):
-                tempo_dict.pop(ticker, None)
-                continue
-
-            data = float(response.json()["MarketCapitalization"])
-            if data < self.init.min_cap:
-                tempo_dict.pop(ticker, None)
-
-        self.init.stock_dictionnary = tempo_dict
-
-    """
-
     def get_trending(self):
         """Function to get the most trending stock on Stock Twits
         By default it will return the 30 most trending stocks
