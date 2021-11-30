@@ -62,17 +62,71 @@ class StockToTrade():
         self.check_cap()
         t=5
 
-
     def check_cap(self):
         """make sure the stocks has the minimum desired market cap. If not it is remove form the stock we want
         to webscrap"""
+
+        tempo_dict = self.init.stock_dictionnary.copy()
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                          '(KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'DNT': '1',  # Do Not Track Request Header
+            'Connection': 'close'
+        }
+
+        for ticker in self.init.stock_dictionnary:
+            url = ''.join(['https://finance.yahoo.com/quote/', ticker, '/key-statistics?p=',ticker])
+            response = requests.get(url,headers=headers)
+
+            #check if we have a redirect
+            is_redirect = False
+            for response_ in response.history:
+                if response_.status_code == 302:
+                    tempo_dict.pop(ticker, None)
+                    is_redirect = True
+                    break
+
+            if is_redirect:
+                continue
+
+            soup = bs.BeautifulSoup(response.text, 'lxml')
+            # Grab the table with the market cap in it
+            table = soup.find_all('table', {'class': 'W(100%) Bdcl(c)'})[0]
+            if table == []:
+                raise Exception("Table to get US market cap in function `check_cap()` does not exist")
+
+            # get the market capitalisation only
+            for row_ in table.findAll('tr')[0:1]:
+                for market_cap_ in row_.findAll('td')[1:2]:
+                    market_cap = market_cap_.text
+
+            #check if market cap is in 'Trillions' (T),'Billions' (B) or 'Millions' (M)
+            if "T" in market_cap:
+                market_cap = 10**12*float(market_cap.replace('T',''))
+            elif 'B' in market_cap:
+                market_cap = 10**9*float(market_cap.replace('B',''))
+            elif 'M' in market_cap:
+                market_cap = 10**6*float(market_cap.replace('M',''))
+
+            if market_cap < self.init.min_cap:
+                tempo_dict.pop(ticker, None)
+
+        self.init.stock_dictionnary = tempo_dict
+
+    """
+    
+    def check_cap(self):
+
         tempo_dict = self.init.stock_dictionnary.copy()
 
         for ticker in self.init.stock_dictionnary:
             url = ''.join(['https://www.alphavantage.co/query?function=OVERVIEW&symbol=',ticker,'&apikey=',
                            self.init.av_key])
             response = requests.get(url)
-
+            
             #stock doesn't exist in Alphavantage for this API call
             if not bool(response.json()):
                 tempo_dict.pop(ticker, None)
@@ -83,6 +137,8 @@ class StockToTrade():
                 tempo_dict.pop(ticker, None)
 
         self.init.stock_dictionnary = tempo_dict
+
+    """
 
     def get_trending(self):
         """Function to get the most trending stock on Stock Twits

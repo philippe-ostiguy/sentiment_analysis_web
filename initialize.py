@@ -126,7 +126,7 @@ class InitProject():
         self.pause_time = 2
         self.min_short = 30
         self.min_cap = 500*10**6
-        self.stock_dictionnary = {'TSLA' : 'Tesla'}
+        self.stock_dictionnary = {}
 
         # list of variables that we should not set ourself
         self.us_holidays = []
