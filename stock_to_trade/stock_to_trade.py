@@ -103,8 +103,12 @@ class StockToTrade():
                 for market_cap_ in row_.findAll('td')[1:2]:
                     market_cap = market_cap_.text
 
+            if market_cap == 'N/A':
+                tempo_dict.pop(ticker, None)
+                continue
+
             #check if market cap is in 'Trillions' (T),'Billions' (B) or 'Millions' (M)
-            if "T" in market_cap:
+            elif "T" in market_cap:
                 market_cap = 10**12*float(market_cap.replace('T',''))
             elif 'B' in market_cap:
                 market_cap = 10**9*float(market_cap.replace('B',''))

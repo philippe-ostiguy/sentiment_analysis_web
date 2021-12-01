@@ -13,3 +13,4 @@ README(to put in README).md
 /sentiment_analysis/twits_analysis_old.py
 /web_scrapping/twitter_api_old.py
 automation.sh
+/output/
