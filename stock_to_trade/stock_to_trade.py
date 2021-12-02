@@ -57,7 +57,7 @@ class StockToTrade():
         #if we already know some stock we want to webscrap data. Set in `self.stock_dictionary` in `initialise.py`
         for ticker in self.init.stock_dictionnary:
             self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
-        self.get_trending()
+        #self.get_trending()
         self.shorted_stocks()
         self.check_cap()
         t=5
@@ -154,9 +154,10 @@ class StockToTrade():
         if table == []:
             raise Exception("Table to get the most shorted stock in `self.shorted_stocks()` doesn't exist")
 
-        short_below = False
-        stock_exist = False
+
         for rows in table.findAll('tr')[1:]:
+            short_below = False
+            stock_exist = False
             #getting the short interest
             for cell in rows.findAll('td')[3:4]:
                 #remove the '%' mark
@@ -167,7 +168,7 @@ class StockToTrade():
                     break
             #exiting as the next stocks will have short interest lower than our minimum thresdol `self.init.min_short`
             if short_below:
-                break
+                continue
 
             #getting the ticker
             for cell in rows.findAll('td')[0:1]:
@@ -176,7 +177,7 @@ class StockToTrade():
                 if ticker in self.init.stock_dictionnary:
                     stock_exist = True
             if stock_exist:
-                break
+                continue
 
             #getting the company name
             for cell in rows.findAll('td')[1:2]:

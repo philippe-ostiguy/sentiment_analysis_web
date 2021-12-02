@@ -124,7 +124,7 @@ class InitProject():
         self.keywords_to_remove = [' Inc.',' INC',' Inc', ' Corporation', ' Corp.', ' Corp', ' Co', ' Ltd', ' ltd',',']
         self.time_ago = 6
         self.pause_time = 2
-        self.min_short = 30
+        self.min_short = 20
         self.min_cap = 500*10**6
         self.stock_dictionnary = {}
 
