@@ -85,7 +85,6 @@ if __name__ == '__main__':
     init = InitMain()
     init()
 
-    init.pd_metrics.to_csv('output/results.csv',encoding='utf-8')
     #decide which stock we webscrap
     stt_ = stt.StockToTrade(init)
     stt_()
@@ -123,10 +122,9 @@ if __name__ == '__main__':
         init = cm()
 
     os.system(f'say -v "Victoria" "The program is done. You can check it out."')
-    init.pd_metrics.to_csv('output/results.csv',encoding='utf-8')
-
-    t = 5
-
+    output_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'output/results.csv')
+    init.pd_metrics.to_csv(output_file,encoding='utf-8')
+    breakpoint()
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
 

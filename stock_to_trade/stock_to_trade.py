@@ -114,6 +114,9 @@ class StockToTrade():
                 market_cap = 10**9*float(market_cap.replace('B',''))
             elif 'M' in market_cap:
                 market_cap = 10**6*float(market_cap.replace('M',''))
+            else:
+                tempo_dict.pop(ticker, None)
+                continue
 
             if market_cap < self.init.min_cap:
                 tempo_dict.pop(ticker, None)

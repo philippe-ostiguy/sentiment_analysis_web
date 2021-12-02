@@ -139,6 +139,7 @@ class InitProject():
         self.pd_metrics = pd.DataFrame()
         self.pd_timer = pd.DataFrame(columns=self.comment_source)
         self.total_comments = []
+        self.driver_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         self.av_key = config('AV_KEY')
 
     def __call__(self):
@@ -215,26 +216,35 @@ class InitProject():
 
         # Options for Chrome Driver
         option = opChrome()
-        option.add_argument("--disable-infobars")
-        option.add_argument("start-maximized")
-        option.add_argument("--disable-extensions")
         option.add_argument("--headless")
+        #option.add_argument("--disable-gpu")
+        #option.add_argument( "--window-size=1920,1080")
+        option.add_argument("--disable-extensions")
         option.add_argument("--no-sandbox")
+        #option.add_argument("--disable-dev-shm-usage")
+        #option.add_argument("--headless")
         #option.add_argument("--single-process")
 
         # Pass the argument 1 to allow notifications and 2 to block them
         #option.add_experimental_option("prefs", {
         #    "profile.default_content_setting_values.notifications": 2
         #})
-        self.driver = webdriver.Chrome(chrome_options=option, executable_path=ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file)
 
         option_ff = opFireFox()
         #option_ff.headless = True
         option_ff.add_argument("--headless")
+        #option_ff.add_argument("--marionette")
+        #option_ff.add_argument("--new-instance")
+        #option_ff.add_argument("--no-sandbox")
+        #option_ff.add_argument("--no-remote")
+        #option_ff.add_argument("--disable-dev-shm-usage")
+
         profile = webdriver.FirefoxProfile()
         profile.set_preference('intl.accept_languages', 'en-US, en')
         self.driver_ff = webdriver.Firefox(options = option_ff,firefox_profile=profile,
                                            executable_path=GeckoDriverManager().install())
+
 
     def set_time_ago(self):
         """Modifiy `self.time_ago` depending if the current day is Monday (so that previous days are the weekend)
