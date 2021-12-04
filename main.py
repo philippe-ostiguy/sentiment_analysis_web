@@ -39,6 +39,8 @@ import stock_to_trade as stt
 import time
 import sys
 import os
+import os
+from twilio.rest import Client
 
 class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary
@@ -58,8 +60,7 @@ class InitMain(InitProject):
         # initialize the project variables
         init = InitProject()
         init()
-        self.driver = init.driver
-        self.driver_ff = init.driver_ff
+        self.driver_parameters = init.driver_parameters
         self.time_ago = init.time_ago
         self.us_holidays = init.us_holidays
         self.pd_metrics = init.pd_metrics
@@ -80,7 +81,6 @@ class InitMain(InitProject):
          #   raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
-
 
     init = InitMain()
     init()
@@ -122,8 +122,24 @@ if __name__ == '__main__':
         init = cm()
 
     os.system(f'say -v "Victoria" "The program is done. You can check it out."')
-    output_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'output/results.csv')
+
+    #Wwriting the file with the resuts
+    output_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), init.output_, init.results)
     init.pd_metrics.to_csv(output_file,encoding='utf-8')
+
+    #writing the time it took to run the program
+    output_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),init.output_, init.timer_)
+    init.pd_timer.to_csv(output_file,encoding='utf-8')
+
+    #sending a SMS to say the program worked
+    client = Client(init.twilio_sid, init.twilio_auth)
+    message = client.messages \
+        .create(
+        body="The webscrapping worked",
+        from_=init.from_phone,
+        to=init.to_phone
+    )
+
     breakpoint()
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500

@@ -78,11 +78,13 @@ class TwitsApi():
                           'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
         self.class_twits = 'css-901oao r-18jsvk2 r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0'
 
-        self.buffer_date_ = 40
+        self.buffer_date_ = 60
         self.date_ = ''  # date if different from today in the Xpath
         self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
         self.twits = ""  # contains the twit fetched from Twitter (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
+
+        self.which_driver = 'firefox' #driver we takes to webscrap the data, firefox for twitter should be used
 
     def __call__(self):
         """built-in function to initialize values"""
@@ -101,9 +103,10 @@ class TwitsApi():
                         #for a new stock
         self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', self.init.current_stock,
                                        '&src=typed_query&f=live'])
-        self.twits = pm.webscrap_content(driver=self.init.driver_ff,posts_to_return=self.posts_to_return,
-                                               end_point=self.stock_endpoint,pause_time=self.init.pause_time,
-                                         date_to_search = self.date_to_search,is_twitter= True)
+        self.twits = pm.webscrap_content(which_driver = self.which_driver,posts_to_return=self.posts_to_return,
+                                         driver_parameters= self.init.driver_parameters,end_point=self.stock_endpoint,
+                                         pause_time=self.init.pause_time,date_to_search = self.date_to_search,
+                                         is_twitter= True)
         return self.write_values()
 
 
@@ -120,11 +123,15 @@ class TwitsApi():
         # datetime according to the number of the days ago we want
         start_time = now - timedelta(hours=(time_ago))
 
-        #less than 24 hours ago, the format for dates is different than more than 24 hours.
-        #Ex: It will show as '23h' (for 23 hours ago) and 'Nov 29' (example) for more than 24 hours
 
-        if time_ago < 24:
-            self.date_ = ''.join([str(time_ago),'h'])
+        #less than 24 hours ago, the format for dates is different than more than 24 hours.
+        #Ex: It will show as '23 hours ago' (for 23 hours ago), '1 hour ago' (for 1 hour ago)
+        # and 'Nov 29' (example) for more than 24 hours
+
+        if time_ago ==1 :
+            self.date_ = ''.join([str(time_ago), ' hour ago'])
+        elif time_ago >1 and time_ago < 24:
+            self.date_ = ''.join([str(time_ago),' hours ago'])
         else:
             # Write the day in Xpath format for Twitter
             text = [str(start_time.strftime('%b')), str(start_time.day)]

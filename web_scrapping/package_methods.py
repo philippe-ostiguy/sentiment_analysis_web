@@ -30,12 +30,15 @@ import re
 import emoji
 import time
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.chrome.options import Options as opChrome
+from selenium.webdriver.firefox.options import Options as opFireFox
 
 
 def delta_date(start_date,end_date):
@@ -94,22 +97,41 @@ def text_cleanup(text_to_clean):
 
     return text_to_clean
 
-def webscrap_content(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter=False):
+def initialise_driver(which_driver,driver_parameters):
+    """Method to initialize the drivers of our choice (Firefox or Chrome) with parameters defined in `initialize.py`
+
+    Parameters
+    ----------
+    `which_driver` : str
+        Which driver we want to use between
+    `driver_parameters` : dict
+        Parameters used to initialize the driver. Ex: option, language settings, etc.
+    """
+    if which_driver == 'chrome':
+
+        return webdriver.Chrome(chrome_options=driver_parameters['options_chrome'],
+                                  executable_path=ChromeDriverManager().install())
+
+    if which_driver == 'firefox':
+        profile_ff = webdriver.FirefoxProfile()
+        profile_ff.set_preference('intl.accept_languages', driver_parameters['ff_language'])
+        return webdriver.Firefox(options = driver_parameters['options_ff'],firefox_profile=profile_ff,
+                                           executable_path=GeckoDriverManager().install())
+
+
+def webscrap_content(which_driver,posts_to_return,end_point,pause_time,date_to_search,driver_parameters,
+                     is_twitter=False):
     """Method to web-scrap content on Stocktwits
     """
 
     twitter_post =[]
+    driver = initialise_driver(which_driver,driver_parameters)
     driver.get(end_point)
-    time.sleep(pause_time)
     twitter_post = scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter)
     time.sleep(pause_time)
+    driver.quit()
 
-    #source is not twitter
-    if not is_twitter:
-        return driver.find_elements_by_xpath(posts_to_return)
-    #source is twitter
-    else :
-        return twitter_post
+    return twitter_post
 
 def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter):
     """Method that scrolls until we find the value, then stops. It search for a date and the class containg
@@ -119,6 +141,7 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
     element_ = None
     twitter_post = []
     while not element_:
+        #need to do it every time on twitter as it doesn't load all the DOM from bottom to top
         if is_twitter:
             twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -126,6 +149,15 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
             element_ = wait.until(EC.presence_of_element_located((By.XPATH,date_to_search)))
         except TimeoutException:
             pass
+    #putting the DOM elements (twits) in a dictionary (DOM elements is loaded from bottom to top)
+    if not is_twitter:
+        #sometimes we may get an error in stocktwits when there are too many posts. Also, if between the time we
+        #reach the desired element (above `while not element_`) and we save the text in a list, there are new posts
+        #(too many), it may generates an error. In that case, we return the list empty
+        try :
+            twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
+        except :
+            return twitter_post
     return twitter_post
 
 def write_values(comment, pv, model,source, dict_):

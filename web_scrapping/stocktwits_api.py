@@ -91,6 +91,9 @@ class StockTwitsApi():
         self.twit_dictionary = {}  # dictionary with information from twits
         self.buffer_date_ = 40
 
+        self.which_driver = 'chrome' #driver we takes to webscrap the data, chrome for twitter should be used
+
+
     def __call__(self):
         """built-in function to initialize values"""
 
@@ -106,9 +109,10 @@ class StockTwitsApi():
 
         self.stock_twits = ""
         self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/',self.init.current_stock])
-        self.stock_twits = pm.webscrap_content(driver=self.init.driver,posts_to_return=self.posts_to_return,
+        self.stock_twits = pm.webscrap_content(driver_parameters=  self.init.driver_parameters,
                                                end_point=self.stock_endpoint, pause_time=self.init.pause_time,
-                                               date_to_search = self.date_to_search)
+                                               date_to_search = self.date_to_search,which_driver = self.which_driver,
+                                               posts_to_return=self.posts_to_return)
         return self.write_values()
 
 
@@ -187,13 +191,13 @@ class StockTwitsApi():
                 # check if it contains bullish or bearish or not in the class
                 # then we are able to extract the twit only
 
-                twit_directional = twit.text.split('\n')[1:2][0]
+                twit_directional = twit.split('\n')[1:2][0]
                 if bullish in twit_directional or bearish in twit_directional:
-                    twit_tempo = twit.text.split('\n', 3)[3:4][0]
+                    twit_tempo = twit.split('\n', 3)[3:4][0]
                     self.twit_dictionary[self.init.columns_sentiment[2]] =twit_directional
 
                 else:
-                    twit_tempo = twit.text.split('\n', 2)[2:3][0]
+                    twit_tempo = twit.split('\n', 2)[2:3][0]
                     self.twit_dictionary[self.init.columns_sentiment[2]] = ''
 
                 func(self, twit_tempo)

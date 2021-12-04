@@ -41,6 +41,13 @@ from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.options import Options as opFireFox
 from decouple import config
 
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+
 def get_tickers():
     """Method that gets the stock symbols from companies listed in the S&P 500
 
@@ -113,6 +120,7 @@ class InitProject():
             minimum stock capitalization to webscrap data. Ex: below 500M$ market cap, we don't webscrap
         `self.av_key` : str
             API key for Alpha Vantage
+
         """
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
@@ -128,19 +136,27 @@ class InitProject():
         self.min_cap = 500*10**6
         self.stock_dictionnary = {}
 
+        #list of variables that are not necessary to change
+        self.output_ = 'output/' #name of the folder where the output are stored
+        self.results = 'results.csv' #name of the files with the `self.pd_metrics` results
+        self.timer_= 'timer_.csv' #name of the files with the `self.pd_timer` results
+
         # list of variables that we should not set ourself
         self.us_holidays = []
         self.current_stock = '' #current stock we webscrap
         self.pd_stock_sentiment = pd.DataFrame(columns=self.columns_sentiment)
-        self.driver = "" #driver in Selenium to webscrap data (chrome)
-        self.driver_ff = "" "" #driver in Selenium to webscrap data (firefox)
+        self.driver_parameters = {} #parameters for the webdrivers (Chrome and Firefox). Parameters are in
+        # `self.init_driver()`
         # fetching or not the data on the 'weekend discussion' post on wallstreetbet.
         self.check_weekend = False # False per default.
         self.pd_metrics = pd.DataFrame()
         self.pd_timer = pd.DataFrame(columns=self.comment_source)
         self.total_comments = []
-        self.driver_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'chromedriver')
         self.av_key = config('AV_KEY')
+        self.twilio_sid = config('TWILIO_SID') #SID to use twilio API, to send SMS
+        self.twilio_auth = config('TWILIO_AUTH') #AUTH to use twilio API, to send SMS
+        self.to_phone=config('TO_PHONE') #phone number we send a SMS with Twilio
+        self.from_phone=config('FROM_PHONE') #Number from where we send SMS with Twilio
 
     def __call__(self):
 
@@ -212,38 +228,31 @@ class InitProject():
             raise Exception(f"List ``self.us_holidays {self.us_holidays} is empty in package `initialize.py`")
 
     def init_driver(self):
-        """Method to initialize the driver to webscrap data. We can put it Chrome of Firefox"""
+        """Method to initialize the parameters for the drivers (Firefox and Chrome) """
 
         # Options for Chrome Driver
-        option = opChrome()
-        option.add_argument("--headless")
-        #option.add_argument("--disable-gpu")
-        #option.add_argument( "--window-size=1920,1080")
-        option.add_argument("--disable-extensions")
-        option.add_argument("--no-sandbox")
-        #option.add_argument("--disable-dev-shm-usage")
-        #option.add_argument("--headless")
-        #option.add_argument("--single-process")
+        self.options_chrome = opChrome()
+        #self.options_chrome.add_argument("--disable-gpu")
+        self.options_chrome.add_argument("--disable-extensions")
+        self.options_chrome.add_argument("--no-sandbox")
+        self.options_chrome.add_argument("--headless")
+        #self.option.add_argument("--disable-dev-shm-usage")
+        #self.option.add_argument( "--window-size=1920,1080")
 
-        # Pass the argument 1 to allow notifications and 2 to block them
-        #option.add_experimental_option("prefs", {
-        #    "profile.default_content_setting_values.notifications": 2
-        #})
-        self.driver = webdriver.Chrome(chrome_options=option, executable_path=self.driver_file)
 
-        option_ff = opFireFox()
-        #option_ff.headless = True
-        option_ff.add_argument("--headless")
-        #option_ff.add_argument("--marionette")
-        #option_ff.add_argument("--new-instance")
-        #option_ff.add_argument("--no-sandbox")
-        #option_ff.add_argument("--no-remote")
-        #option_ff.add_argument("--disable-dev-shm-usage")
+        #store options in dictinoary
+        self.driver_parameters['options_chrome'] = self.options_chrome
 
-        profile = webdriver.FirefoxProfile()
-        profile.set_preference('intl.accept_languages', 'en-US, en')
-        self.driver_ff = webdriver.Firefox(options = option_ff,firefox_profile=profile,
-                                           executable_path=GeckoDriverManager().install())
+        #Options for Firefox driver
+        self.option_ff = opFireFox()
+        self.option_ff.add_argument("--headless")
+        #self.option_ff.add_argument("--no-sandbox")
+        #self.option_ff.add_argument("--disable-dev-shm-usage")
+        self.ff_language =  'en-US, en'
+
+        #store options and language profile in dict
+        self.driver_parameters['options_ff'] = self.option_ff
+        self.driver_parameters['ff_language'] = self.ff_language
 
 
     def set_time_ago(self):
