@@ -59,8 +59,13 @@ class StockToTrade():
             self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
         self.get_trending()
         #self.shorted_stocks()
+        self.check_position()
         self.check_cap()
         t=5
+
+    def check_position(self):
+        """"""
+        pass
 
     def check_cap(self):
         """make sure the stocks has the minimum desired market cap. If not it is remove form the stock we want

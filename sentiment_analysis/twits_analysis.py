@@ -74,7 +74,7 @@ class TwitAnalysis():
         task = 'sentiment'
         MODEL = f"cardiffnlp/twitter-roberta-base-{task}"
 
-        self.tokenizer = AutoTokenizer.from_pretrained(MODEL)
+        self.tokenizer = AutoTokenizer.from_pretrained(MODEL,TOKENIZERS_PARALLELISM = False )
 
         # download label mapping
         self.labels = []

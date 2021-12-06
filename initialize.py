@@ -40,12 +40,7 @@ from selenium.webdriver.chrome.options import Options as opChrome
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.options import Options as opFireFox
 from decouple import config
-
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+import logging
 
 
 def get_tickers():
@@ -120,7 +115,15 @@ class InitProject():
             minimum stock capitalization to webscrap data. Ex: below 500M$ market cap, we don't webscrap
         `self.av_key` : str
             API key for Alpha Vantage
-
+        `self.min_comments` : int
+            Minimum number of comments to enter a trade. Ex : below 100 comments for all sources (reddit, stocktwits,
+            twitter), we don't initiate a trade
+        `self.min_sentiment` : int
+            Minimum sentiment level to enter a trade. Ex: A sentiment level below -20%, we go bear, above +20%, we
+            go bull
+        `self.min_sentiment_in` : int
+            Minimum sentiment level to keep a trade when we already in. Ex: A sentiment level below -15%, we stay bear,
+            above +15%, we stay bull
         """
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
@@ -134,12 +137,19 @@ class InitProject():
         self.pause_time = 2
         self.min_short = 20
         self.min_cap = 500*10**6
+        self.min_comments = 100
+        self.min_sentiment = 20
+        self.min_sentiment_in = 15
+
         self.stock_dictionnary = {}
 
         #list of variables that are not necessary to change
         self.output_ = 'output/' #name of the folder where the output are stored
         self.results = 'results.csv' #name of the files with the `self.pd_metrics` results
         self.timer_= 'timer_.csv' #name of the files with the `self.pd_timer` results
+        self.input = 'input/' #name of the folder where the input are stored
+        self.position = 'positions.csv' #name of the files telling the position we have. We have a position if
+                                        #the thresold are 'meet' (`self.min_comments` and `self.min_sentiment`
 
         # list of variables that we should not set ourself
         self.us_holidays = []
@@ -153,6 +163,7 @@ class InitProject():
         self.pd_timer = pd.DataFrame(columns=self.comment_source)
         self.total_comments = []
         self.av_key = config('AV_KEY')
+        self.logger_file = config('LOG_FILENAME') #file with error (traceback)
         self.twilio_sid = config('TWILIO_SID') #SID to use twilio API, to send SMS
         self.twilio_auth = config('TWILIO_AUTH') #AUTH to use twilio API, to send SMS
         self.to_phone=config('TO_PHONE') #phone number we send a SMS with Twilio
@@ -166,6 +177,8 @@ class InitProject():
         self.init_timer()
         #self.set_time_ago()
         self.create_columns()
+        self.erase_logger()
+
 
     def init_timer(self):
         """Initialize the values to 0 (first line) of self.pd_timer"""
@@ -226,6 +239,15 @@ class InitProject():
 
         if not self.us_holidays :
             raise Exception(f"List ``self.us_holidays {self.us_holidays} is empty in package `initialize.py`")
+
+    def erase_logger(self):
+        """Erase content of the logger file"""
+        try:
+            file = open(self.logger_file,"r+")
+            file.truncate(0)
+        except:
+            #file does not exist
+            pass
 
     def init_driver(self):
         """Method to initialize the parameters for the drivers (Firefox and Chrome) """
