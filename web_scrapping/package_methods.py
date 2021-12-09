@@ -157,7 +157,7 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
         try :
             twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
         except :
-            return twitter_post
+            return []
     return twitter_post
 
 def write_values(comment, pv, model,source, dict_):

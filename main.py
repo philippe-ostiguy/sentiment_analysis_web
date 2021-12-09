@@ -86,9 +86,12 @@ if __name__ == '__main__':
     init = InitMain()
     init()
 
+
+
     # logging error in a log file
     logging.basicConfig(filename=init.logger_file, level=logging.ERROR)
     # checking if there is an error and log it into the log file
+
     try:
         
         #decide which stock we webscrap
@@ -134,7 +137,7 @@ if __name__ == '__main__':
         init.pd_metrics.to_csv(output_file,encoding='utf-8')
 
         #writing the time it took to run the program
-        output_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),init.output__, init.timer_)
+        output_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),init.output_, init.timer_)
         init.pd_timer.to_csv(output_file,encoding='utf-8')
 
         #sending a SMS to say the program worked
@@ -148,8 +151,10 @@ if __name__ == '__main__':
 
         breakpoint()
 
-    except:
+    except :
+        os.system(f'say -v "Victoria" "The program crashed. Check it pls"')
         logging.exception('Got exception on main handler')
+        #print(e)
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
 
