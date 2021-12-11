@@ -41,6 +41,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 import web_scrapping.package_methods as pm
+import pmaw
 
 class RedditApi_():
     """Class to webscrap data on Reddit using Selenium. It stores it in a pandas dataFrame.

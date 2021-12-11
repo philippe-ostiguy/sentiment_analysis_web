@@ -120,7 +120,8 @@ class InitProject():
             twitter), we don't initiate a trade
         `self.min_sentiment` : int
             Minimum sentiment level to enter a trade. Ex: A sentiment level below -20%, we go bear, above +20%, we
-            go bull
+            go bull. If we use FinViz to get the shorted stocks (in `stock_to_trade.py`, the value most be either,
+            5%, 10%, 15%, 20%, 25% or 30%.This is because the free version of Finviz only accepts these values.
         `self.min_sentiment_in` : int
             Minimum sentiment level to keep a trade when we already in. Ex: A sentiment level below -15%, we stay bear,
             above +15%, we stay bull
@@ -132,10 +133,11 @@ class InitProject():
         self.columns_metrics = ["Total average sentiment","Total number of comments", "Stocktwits sentiment accuracy",
                                 "Average sentiment for ", "Nb of comments for "]
         self.comment_source = ['reddit','stocktwit','twitter']
-        self.keywords_to_remove = [' Inc.',' INC',' Inc', ' Corporation', ' Corp.', ' Corp', ' Co', ' Ltd', ' ltd',',']
+        self.keywords_to_remove = ['limited', 'Limited','Inc.','INC','Inc', 'Corporation', 'Corp.', 'Corp', 'Co.','Co',
+                                   'Ltd','ltd',',']
         self.time_ago = 6
         self.pause_time = 2
-        self.min_short = 20
+        self.min_short = 30
         self.min_cap = 500*10**6
         self.min_comments = 100
         self.min_sentiment = 20

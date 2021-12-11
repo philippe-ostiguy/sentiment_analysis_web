@@ -58,7 +58,7 @@ class StockToTrade():
         for ticker in self.init.stock_dictionnary:
             self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
         self.get_trending()
-        #self.shorted_stocks()
+        self.shorted_finviz()
         self.check_position()
         self.check_cap()
         t=5
@@ -148,9 +148,91 @@ class StockToTrade():
             if i == self.nb_trending:
                 break
 
-    def shorted_stocks(self):
-        """Method to get the most shorted stock on https://www.highshortinterest.com/. See begginning of this module
+    def call_bs(self,url, element, class_str ):
+        """Method to call beautiful soup and retun table(s)
+
+        Parameters
+        ---------
+        `url` : str
+            url where we webscrap data
+        `element` : str
+            html element where we want to get data
+        `class_str` : str
+            class of the html element
+        """
+
+        headers = {
+            'User-Agent': 'My User Agent 1.0'}
+        resp = requests.get(url, headers=headers)
+        soup = bs.BeautifulSoup(resp.text, 'lxml')
+        return soup.find_all('tr', {'class': class_str})
+
+
+    def shorted_finviz(self):
+        """Method to get the most shorted stock on finviz. See begginning of this module
         to understand the parameters used in this method"""
+
+        accepted_values = [0,5,10,15,20,25,30]
+        if not self.init.min_short in accepted_values:
+            raise Exception(f"Parameter `self.init.min_short` most be {accepted_values}. Current value is "
+                            f"{self.init.min_short}. This is because the free version of Finviz only accepts these "
+                            f"values.")
+
+
+        symbol_list = []
+        symbol_exist = False
+        ticker_number = 1 #which page we are. On finviz, for the shorted stocks, it displays 20 ticker per page.
+                        #So the first page will look like : https://finviz.com/screener.ashx?v=111&f=sh_short_o25&r=1,
+                        #the second : https://finviz.com/screener.ashx?v=111&f=sh_short_o25&r=21, etc.
+
+        while not symbol_exist:
+            url_ = ''.join(['https://finviz.com/screener.ashx?v=111&f=sh_short_o', str(self.init.min_short),'&r=',
+                            str(ticker_number)])
+
+            tables = []
+            try:
+                tables = self.call_bs(url_, 'tr', 'table-dark-row-cp')
+            except:
+                pass
+
+            try:
+                table_ = self.call_bs(url_, 'tr', 'table-light-row-cp')
+                tables +=  table_
+            except:
+                pass
+
+            #end of page
+            if tables == []:
+                break
+
+            for table in tables:
+
+               #getting the ticker
+                for row in table.findAll('td')[1:2]:
+
+                    # we check if we already have the symbol in the list. It will tell us that we are at the end
+                    # of the list in finviz
+                    if row.text in symbol_list:
+                        symbol_exist = True
+                        break
+                    symbol_list.append(row.text)
+                    ticker = row.text
+
+                #getting the company name
+                for row in table.findAll('td')[2:3]:
+                    company = row.text
+
+                #symbol already exist, we are at the end of the list in Finviz
+                if symbol_exist:
+                    break
+
+                self.adjust_keywords(ticker, company)
+            #go to the next page
+            ticker_number +=20
+
+    def shorted_stocks(self):
+        """Method to get the most shorted stock on https://www.highshortinterest.com/. See begginning of the module
+        `initialise.py` to understand the parameters used in this method"""
 
         resp = requests.get('https://www.highshortinterest.com/')
         soup = bs.BeautifulSoup(resp.text, 'lxml')
@@ -158,7 +240,6 @@ class StockToTrade():
         table = soup.find_all('table', {'class': 'stocks'})[0]
         if table == []:
             raise Exception("Table to get the most shorted stock in `self.shorted_stocks()` doesn't exist")
-
 
         for rows in table.findAll('tr')[1:]:
             short_below = False
@@ -209,6 +290,8 @@ class StockToTrade():
 
         # remove duplicated whitespaces
         stock_name = stock_name.replace("  ", " ")
+
+        #remove trailing and leading space
         symbol = symbol.strip()
 
         #stock with characters in lower case
