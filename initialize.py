@@ -139,7 +139,7 @@ class InitProject():
         self.comment_source = ['reddit','stocktwit','twitter']
         self.keywords_to_remove = ['limited', 'Limited','Inc.','INC','Inc', 'Corporation', 'Corp.', 'Corp', 'Co.','Co',
                                    'Ltd','ltd',',']
-        self.time_ago = 1
+        self.time_ago = 6
         self.pause_time = 2
         self.short_level = 30
         self.min_cap = 500*10**6
@@ -160,6 +160,11 @@ class InitProject():
         self.input = 'input/' #name of the folder where the input are stored
         self.position = 'positions.csv' #name of the files telling the position we have. We have a position if
                                         #the thresold are 'meet' (`self.min_comments` and `self.min_sentiment`
+        #file with the results, ie nb of comments and sentiment analysis
+        self.results_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), output_, results)
+        #file with the time it took to run the script on each source (reddit, stocktwit, twitter)
+        self.timer_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), output_, init.timer_)
+
 
         # list of variables that we should not set ourself
         self.us_holidays = []

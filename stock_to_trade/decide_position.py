@@ -26,6 +26,8 @@
 
 """Module to determine the stock that we take or close a position (long, short)"""
 
+import pandas as pd
+
 class DecidePosition():
     """Class to decide which stock we take a position or exist"""
 
@@ -47,13 +49,14 @@ class DecidePosition():
 
     def __call__(self):
         #if we already know some stock we want to webscrap data. Set in `self.stock_dictionary` in `initialise.py`
-        for ticker in self.init.stock_dictionnary:
-            self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
-        self.get_trending()
-        self.shorted_finviz()
-        self.check_position()
-        self.check_cap()
-        t=5
+       self.decide_position()
 
     def decide_position(self):
         """Method to decide if we take a short or long position on a stock"""
+        df = pd.read_csv(init.timer_file)
+        for _, row in df.iterrows():
+            if row[init.column_metrics[1]] > init.min_comments:
+
+                row.iloc[0]
+
+            self.columns_metrics = ["Total average sentiment", "Total number of comments"]
