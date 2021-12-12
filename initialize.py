@@ -124,7 +124,8 @@ class InitProject():
         `self.short_level` : int
             Short level we use to get stock that we may trade (used in `stock_to_trade`). Ex: on Finviz, we get the stock
             we a short level of 30% or more of floating stocks. We will then webscrap data on these stocks and get
-            sentiment analysis
+            sentiment analysis. If we use FinViz to get the shorted stocks (in `stock_to_trade.py`, the value most be
+            either 5%, 10%, 15%, 20%, 25% or 30%.This is because the free version of Finviz only accepts these values.
         `self.min_sentiment_in` : int
             Minimum sentiment level to keep a trade when we already in. Ex: A sentiment level below -15%, we stay bear,
             above +15%, we stay bull
@@ -145,7 +146,6 @@ class InitProject():
         self.min_comments = 100
         self.min_sentiment = 20
         self.min_sentiment_in = 15
-
 
         #we may change these variables but probably not
         self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`

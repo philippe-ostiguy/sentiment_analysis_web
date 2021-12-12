@@ -173,9 +173,9 @@ class StockToTrade():
         to understand the parameters used in this method"""
 
         accepted_values = [0,5,10,15,20,25,30]
-        if not self.init.min_short in accepted_values:
-            raise Exception(f"Parameter `self.init.min_short` most be {accepted_values}. Current value is "
-                            f"{self.init.min_short}. This is because the free version of Finviz only accepts these "
+        if not self.init.short_level in accepted_values:
+            raise Exception(f"Parameter `self.init.short_level` most be {accepted_values}. Current value is "
+                            f"{self.init.short_level}. This is because the free version of Finviz only accepts these "
                             f"values.")
 
 
@@ -186,7 +186,7 @@ class StockToTrade():
                         #the second : https://finviz.com/screener.ashx?v=111&f=sh_short_o25&r=21, etc.
 
         while not symbol_exist:
-            url_ = ''.join(['https://finviz.com/screener.ashx?v=111&f=sh_short_o', str(self.init.min_short),'&r=',
+            url_ = ''.join(['https://finviz.com/screener.ashx?v=111&f=sh_short_o', str(self.init.short_level),'&r=',
                             str(ticker_number)])
 
             tables = []
@@ -249,10 +249,10 @@ class StockToTrade():
                 #remove the '%' mark
                 short_interest = float(cell.text.replace('%',''))
                 #check if current short interest is below our minimum 'acceptable' thresold
-                if short_interest < self.init.min_short:
+                if short_interest < self.init.short_level:
                     short_below = True
                     break
-            #exiting as the next stocks will have short interest lower than our minimum thresdol `self.init.min_short`
+            #exiting as the next stocks will have short interest lower than our minimum thresdol `self.init.short_level`
             if short_below:
                 continue
 
