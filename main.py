@@ -129,6 +129,9 @@ if __name__ == '__main__':
         #calculate the metrics
         init = cm()
 
+    dp_ = stt.DecidePosition(init)
+    dp_()
+
     os.system(f'say -v "Victoria" "The program is done. You can check it out."')
 
     #Wwriting the file with the resuts

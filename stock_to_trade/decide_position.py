@@ -24,5 +24,36 @@
 #  OR OTHER DEALINGS IN THE SOFTWARE.
 ##############################################################################
 
-from stock_to_trade.stock_to_trade import StockToTrade
-from stock_to_trade.decide_position import DecidePosition
+"""Module to determine the stock that we take or close a position (long, short)"""
+
+class DecidePosition():
+    """Class to decide which stock we take a position or exist"""
+
+    def __init__(self,init):
+        """
+        Attributes
+        ----------
+        `self.nb_trending` : int
+            nb of trennding stocks we want to webscrap from stocktwits
+
+        Parameter
+        ----------
+        `init` : cls
+            class from the module `initialize.py` that initializes global variables for the project
+        """
+
+        self.init = init
+
+
+    def __call__(self):
+        #if we already know some stock we want to webscrap data. Set in `self.stock_dictionary` in `initialise.py`
+        for ticker in self.init.stock_dictionnary:
+            self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
+        self.get_trending()
+        self.shorted_finviz()
+        self.check_position()
+        self.check_cap()
+        t=5
+
+    def decide_position(self):
+        """Method to decide if we take a short or long position on a stock"""
