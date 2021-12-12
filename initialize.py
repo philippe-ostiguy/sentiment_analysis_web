@@ -120,8 +120,11 @@ class InitProject():
             twitter), we don't initiate a trade
         `self.min_sentiment` : int
             Minimum sentiment level to enter a trade. Ex: A sentiment level below -20%, we go bear, above +20%, we
-            go bull. If we use FinViz to get the shorted stocks (in `stock_to_trade.py`, the value most be either,
-            5%, 10%, 15%, 20%, 25% or 30%.This is because the free version of Finviz only accepts these values.
+            go bull.
+        `self.short_level` : int
+            Short level we use to get stock that we may trade (used in `stock_to_trade`). Ex: on Finviz, we get the stock
+            we a short level of 30% or more of floating stocks. We will then webscrap data on these stocks and get
+            sentiment analysis
         `self.min_sentiment_in` : int
             Minimum sentiment level to keep a trade when we already in. Ex: A sentiment level below -15%, we stay bear,
             above +15%, we stay bull
@@ -137,7 +140,7 @@ class InitProject():
                                    'Ltd','ltd',',']
         self.time_ago = 1
         self.pause_time = 2
-        self.min_short = 30
+        self.short_level = 30
         self.min_cap = 500*10**6
         self.min_comments = 100
         self.min_sentiment = 20
@@ -148,8 +151,7 @@ class InitProject():
         self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`
         self.limit = 100000 #max comments to webscrap on reddit in `reddit_api.py`
 
-
-        self.stock_dictionnary = {}
+        self.stock_dictionnary = {} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
 
         #list of variables that are not necessary to change
         self.output_ = 'output/' #name of the folder where the output are stored
