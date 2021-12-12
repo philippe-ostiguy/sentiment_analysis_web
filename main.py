@@ -94,8 +94,8 @@ if __name__ == '__main__':
     #try:
         
     #decide which stock we webscrap
-    stt_ = stt.StockToTrade(init)
-    stt_()
+    #stt_ = stt.StockToTrade(init)
+    #stt_()
 
     #initialize the Roberta sentiment analysis
     init_roberta = sa.TwitAnalysis(init)

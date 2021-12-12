@@ -135,13 +135,19 @@ class InitProject():
         self.comment_source = ['reddit','stocktwit','twitter']
         self.keywords_to_remove = ['limited', 'Limited','Inc.','INC','Inc', 'Corporation', 'Corp.', 'Corp', 'Co.','Co',
                                    'Ltd','ltd',',']
-        self.time_ago = 6
+        self.time_ago = 1
         self.pause_time = 2
         self.min_short = 30
         self.min_cap = 500*10**6
         self.min_comments = 100
         self.min_sentiment = 20
         self.min_sentiment_in = 15
+
+
+        #we may change these variables but probably not
+        self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`
+        self.limit = 100000 #max comments to webscrap on reddit in `reddit_api.py`
+
 
         self.stock_dictionnary = {}
 

@@ -41,7 +41,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
 import web_scrapping.package_methods as pm
-import pmaw
+from pmaw import PushshiftAPI
+
 
 class RedditApi_():
     """Class to webscrap data on Reddit using Selenium. It stores it in a pandas dataFrame.
@@ -106,10 +107,21 @@ class RedditApi_():
         """
 
         super().__init__()
-
         #We should touch these data. They come from the classes where we initialize the data
         self.init = init #giving the values of class `init` to `self.init` variable (pv for project variables)
         self.roberta = init_sentiment #giving the values of class `init_sentiment` to `self.roberta` variable
+
+        self.api = PushshiftAPI()
+
+        current_time = datetime.now()
+        beggining_time = current_time - timedelta(hours = self.init.time_ago)
+
+        self.before = int(current_time.timestamp()) #this is actually the time
+        self.after = int(beggining_time.timestamp()) #this is the time where we start to webscrap
+
+        comments = api.search_comments(subreddit=self.init.subreddit, limit=self.init.limit, before=before, after=after)
+        print(f'Retrieved {len(comments)} comments from Pushshift')
+
 
         self.date_ = ""
         self.reddit_endpoint = 'https://www.reddit.com/r/wallstreetbets/comments/'
