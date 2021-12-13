@@ -161,9 +161,9 @@ class InitProject():
         self.position = 'positions.csv' #name of the files telling the position we have. We have a position if
                                         #the thresold are 'meet' (`self.min_comments` and `self.min_sentiment`
         #file with the results, ie nb of comments and sentiment analysis
-        self.results_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), output_, results)
+        self.results_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.output_, self.results)
         #file with the time it took to run the script on each source (reddit, stocktwit, twitter)
-        self.timer_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), output_, init.timer_)
+        self.timer_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.output_, self.timer_)
 
 
         # list of variables that we should not set ourself
