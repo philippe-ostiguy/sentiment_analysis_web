@@ -141,7 +141,7 @@ class InitProject():
                                    'Ltd','ltd',',']
         self.time_ago = 6
         self.pause_time = 2
-        self.short_level = 30
+        self.short_level = 25
         self.min_cap = 500*10**6
         self.min_comments = 100
         self.min_sentiment = 20
