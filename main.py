@@ -88,10 +88,15 @@ if __name__ == '__main__':
     init()
 
     # logging error in a log file
-    logging.basicConfig(filename=init.logger_file, level=logging.ERROR)
-    # checking if there is an error and log it into the log file
+
+    logformat = "%(asctime)s %(levelname)s %(module)s - %(funcName)s: %(message)s"
+    datefmt = "%m-%d %H:%M"
+    logging.root.handlers = []
+    logging.basicConfig(filename=init.logger_file, level=logging.ERROR, filemode="w",
+                        format=logformat, datefmt=datefmt)
 
     try:
+
         #decide which stock we webscrap
         stt_ = stt.StockToTrade(init)
         stt_()
@@ -148,9 +153,9 @@ if __name__ == '__main__':
             to=init.to_phone
         )
 
-    except :
+    except Exception as e:
+        logging.error(e)
         os.system(f'say -v "Victoria" "The program crashed. Check it please"')
-        logging.exception('Got exception on main handler')
 
         #sending a SMS to say the program did not work
         client = Client(init.twilio_sid, init.twilio_auth)

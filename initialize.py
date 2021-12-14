@@ -192,7 +192,7 @@ class InitProject():
         self.init_timer()
         #self.set_time_ago()
         self.create_columns()
-        self.erase_logger()
+        self.create_logger()
 
 
     def init_timer(self):
@@ -255,14 +255,12 @@ class InitProject():
         if not self.us_holidays :
             raise Exception(f"List ``self.us_holidays {self.us_holidays} is empty in package `initialize.py`")
 
-    def erase_logger(self):
-        """Erase content of the logger file"""
-        try:
-            file = open(self.logger_file,"r+")
-            file.truncate(0)
-        except:
-            #file does not exist
-            pass
+    def create_logger(self):
+        """Create file and erase previous one if it exists"""
+        #file = open('log.log',"w")
+        file = open(self.logger_file,"w")
+        file.close()
+        #pass
 
     def init_driver(self):
         """Method to initialize the parameters for the drivers (Firefox and Chrome) """

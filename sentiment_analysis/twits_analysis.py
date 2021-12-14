@@ -117,7 +117,9 @@ class TwitAnalysis():
 
         # extract sentiment prediction if there is a text in the stocktwit
         if (twit!= "") and (twit):
-            encoded_input = self.tokenizer(twit, return_tensors='pt')
+            #encoded_input = self.tokenizer(twit, return_tensors='pt')
+            encoded_input = self.tokenizer(twit, return_tensors='pt', padding=True, truncation=True,max_length=50,
+                                           add_special_tokens = True)
             output = self.model(**encoded_input)
             scores = output[0][0].detach().numpy()
             scores = softmax(scores)
