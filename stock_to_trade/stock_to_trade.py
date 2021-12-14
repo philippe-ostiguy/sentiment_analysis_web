@@ -57,7 +57,7 @@ class StockToTrade():
         #if we already know some stock we want to webscrap data. Set in `self.stock_dictionary` in `initialise.py`
         for ticker in self.init.stock_dictionnary:
             self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
-        self.get_trending()
+        #self.get_trending()
         self.shorted_finviz()
         self.check_position()
         self.check_cap()

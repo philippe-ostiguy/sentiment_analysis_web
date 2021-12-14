@@ -106,9 +106,9 @@ if __name__ == '__main__':
         init_roberta() #built-in call method to initialize the model
 
         #initialize all classes we want to webscrap data
-        ra_ = ws.RedditApi_(init, init_roberta) # Reddit
-        sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
-        sta_()
+        #ra_ = ws.RedditApi_(init, init_roberta) # Reddit
+        #sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
+        #sta_()
         ta = ws.TwitsApi(init, init_roberta) # Twitter
         ta()
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         cm = ps.CalculateMetrics(init)
 
         #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
-        ra_.webscrap()
+        #ra_.webscrap()
 
         for stock,keywords in init.stock_dictionnary.items():
             init.current_stock = stock #changing to current stock in loop
@@ -126,8 +126,8 @@ if __name__ == '__main__':
             # return the comments with sentiment analysis using Twitter-based Roberta Transformer on reddit, twitter,
             #stocktwits
 
-            init.pd_stock_sentiment = ra_.write_values()
-            init.pd_stock_sentiment =  sta_.webscrap()
+            #init.pd_stock_sentiment = ra_.write_values()
+            #init.pd_stock_sentiment =  sta_.webscrap()
             init.pd_stock_sentiment = ta.webscrap()
 
             #calculate the metrics

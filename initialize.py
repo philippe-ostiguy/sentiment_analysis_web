@@ -280,7 +280,7 @@ class InitProject():
 
         #Options for Firefox driver
         self.option_ff = opFireFox()
-        self.option_ff.add_argument("--headless")
+        #self.option_ff.add_argument("--headless")
         #self.option_ff.add_argument("--no-sandbox")
         #self.option_ff.add_argument("--disable-dev-shm-usage")
         self.ff_language =  'en-US, en'
