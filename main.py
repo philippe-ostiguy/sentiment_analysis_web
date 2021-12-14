@@ -151,6 +151,16 @@ if __name__ == '__main__':
     except :
         os.system(f'say -v "Victoria" "The program crashed. Check it please"')
         logging.exception('Got exception on main handler')
+
+        #sending a SMS to say the program did not work
+        client = Client(init.twilio_sid, init.twilio_auth)
+        message = client.messages \
+            .create(
+            body="The webscrapping did not work",
+            from_=init.from_phone,
+            to=init.to_phone
+        )
+
         #print(e)
 
     #init.tickers = pp.get_tickers() #get_tickers() is to get tickers from all the companies listedin the s&p 500
