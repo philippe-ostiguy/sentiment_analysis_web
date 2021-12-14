@@ -89,7 +89,7 @@ class StockTwitsApi():
         self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
         self.stock_twits = "" #contains the twit fetched from stocktwits (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
-        self.buffer_date_ = 40
+        self.buffer_date_ = 60
 
         self.which_driver = 'chrome' #driver we takes to webscrap the data, chrome for twitter should be used
 
@@ -98,6 +98,8 @@ class StockTwitsApi():
         """built-in function to initialize values"""
 
         self.buffer_date()
+        #class to check if the page is not empty on stocktwit
+        self.stocktwit_class = '//a[@class="{}"]'.format(self.class_time)
         self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
@@ -112,7 +114,8 @@ class StockTwitsApi():
         self.stock_twits = pm.webscrap_content(driver_parameters=  self.init.driver_parameters,
                                                end_point=self.stock_endpoint, pause_time=self.init.pause_time,
                                                date_to_search = self.date_to_search,which_driver = self.which_driver,
-                                               posts_to_return=self.posts_to_return)
+                                               posts_to_return=self.posts_to_return,
+                                               stocktwit_class = self.stocktwit_class)
         return self.write_values()
 
 

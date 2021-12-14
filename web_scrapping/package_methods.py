@@ -120,35 +120,46 @@ def initialise_driver(which_driver,driver_parameters):
 
 
 def webscrap_content(which_driver,posts_to_return,end_point,pause_time,date_to_search,driver_parameters,
-                     is_twitter=False):
+                     is_twitter=False,stocktwit_class = None):
     """Method to web-scrap content on Stocktwits
     """
 
     twitter_post =[]
     driver = initialise_driver(which_driver,driver_parameters)
     driver.get(end_point)
-    twitter_post = scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter)
+    twitter_post = scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter,
+                                   stocktwit_class)
     time.sleep(pause_time)
     driver.quit()
 
     return twitter_post
 
-def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter):
+def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter,stocktwit_class):
     """Method that scrolls until we find the value, then stops. It search for a date and the class containg
     the date"""
 
     wait = WebDriverWait(driver, pause_time)
     element_ = None
+    exist = None
     twitter_post = []
     while not element_:
         #need to do it every time on twitter as it doesn't load all the DOM from bottom to top
         if is_twitter:
             twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
         try:
             element_ = wait.until(EC.presence_of_element_located((By.XPATH,date_to_search)))
         except TimeoutException:
             pass
+        #here we check if we are on a page that is empty on stocktwit (it exists!) so that we don't scroll down
+        # forever
+        if not is_twitter:
+            try :
+                exist = wait.until(EC.presence_of_element_located((By.XPATH,stocktwit_class)))
+            except:
+                element_ = True
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
     #putting the DOM elements (twits) in a dictionary (DOM elements is loaded from bottom to top)
     if not is_twitter:
         #sometimes we may get an error in stocktwits when there are too many posts. Also, if between the time we
