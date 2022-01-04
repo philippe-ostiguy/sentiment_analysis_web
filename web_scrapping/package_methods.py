@@ -139,26 +139,29 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
     the date"""
 
     wait = WebDriverWait(driver, pause_time)
+
     element_ = None
     exist = None
     twitter_tempo = []
     twitter_post = []
     while not element_:
-        #need to do it every time on twitter as it doesn't load all the DOM from bottom to top
-
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        if is_twitter:
-            #try:
-
-            twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
-            #it means that the page doesn't exist and will generate an error
-            #except:
-             #   pass
-
+        #we need to make it sleep, (between 1 and 2 minimum) otherwise the browser doesn't have enough time to load
+        time.sleep(1.5)
         try:
             element_ = wait.until(EC.presence_of_element_located((By.XPATH,date_to_search)))
         except TimeoutException:
             pass
+
+        #need to do it every time on twitter as it doesn't load all the DOM from bottom to top
+        if is_twitter:
+            try:
+
+                twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
+
+            #it means that the page doesn't exist and will generate an error
+            except:
+                pass
+
         #here we check if we are on a page that is empty on stocktwit (it exists!) so that we don't scroll down
         # forever
         if not is_twitter:
@@ -166,6 +169,7 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
                 exist = wait.until(EC.presence_of_element_located((By.XPATH,stocktwit_class)))
             except:
                 element_ = True
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
     #putting the DOM elements (twits) in a dictionary (DOM elements is loaded from bottom to top)
     if not is_twitter:

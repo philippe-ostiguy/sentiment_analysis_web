@@ -58,7 +58,7 @@ class StockToTrade():
         for ticker in self.init.stock_dictionnary:
             self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
         #self.get_trending()
-        self.shorted_finviz()
+        #self.shorted_finviz()
         self.check_position()
         self.check_cap()
         t=5
@@ -162,7 +162,8 @@ class StockToTrade():
         """
 
         headers = {
-            'User-Agent': 'My User Agent 1.0'}
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                          '(KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
         resp = requests.get(url, headers=headers)
         soup = bs.BeautifulSoup(resp.text, 'lxml')
         return soup.find_all('tr', {'class': class_str})
