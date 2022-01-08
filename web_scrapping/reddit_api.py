@@ -109,8 +109,10 @@ class RedditApi_():
             for comment in self.reddit_comments:
                 # check if the post contains the stock (keywords) we are looking for
                 for stock,keywords in self.init.stock_dictionnary.items():
+                    #while looping the dictionary with keywords, we check if we are the current stock
+                    #that we want to get the comments
                     if stock == self.init.current_stock:
-                        #check if the comment contains at least one of the keyword
+                        #check if the comment contains at least one of the keyword for this stock
                         if any(keyword in comment for keyword in keywords):
                             func(self,comment)
                             break # not analyzing the same post twice (in case we have more than 1 keyword)
@@ -122,7 +124,7 @@ class RedditApi_():
     @pm.decorator_timer(0) #0 is for reddit in `self.comment_source` in `initialise.py`
     @loop_comments
     def write_values(self,comment):
-        """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
+        """Method to determine the mood of each comment (positive, negative) with a score between -1 and 1
          (-1 being the most negative and +1 being the most positive and write different values in the
          pandas DataFrame `self.pd_stock_sentiment`"""
 

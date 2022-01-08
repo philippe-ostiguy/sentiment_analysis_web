@@ -61,6 +61,7 @@ class InitMain(InitProject):
         # initialize the project variables
         init = InitProject()
         init()
+        #for hugging face, to avoid error in `twits_analysis.py`
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
         self.driver_parameters = init.driver_parameters
         self.time_ago = init.time_ago
@@ -154,7 +155,9 @@ if __name__ == '__main__':
         )
 
     except Exception as e:
+        #logging the error in the file
         logging.error(e)
+
         os.system(f'say -v "Victoria" "The program crashed. Check it please"')
 
         #sending a SMS to say the program did not work

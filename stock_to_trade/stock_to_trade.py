@@ -274,8 +274,14 @@ class StockToTrade():
 
     def adjust_keywords(self,symbol,stock_name):
         """Method that adjust the keyword for the stock we are searching on Reddit so that they can be found easily.
-        It returns the new dictionary with adjusted keywords
-        Ex : If name is 'Apple', we may also be looking for 'apple'"""
+        It returns the new dictionary with adjusted keywords. The list of keywords we will be looking for a stock will
+        be the ticker in capitalized letter, the name of the company in lower case and the name of the company with the
+        first letter in capitalized letter
+
+        Ex: For Apple, the keywords will be AAPL, Apple and apple
+
+        N.B. It's risky to search the ticker in lower case. Let's take the SPY, we will search for 'spy' which has
+        a total different meaning"""
 
         new_keywords = []
         #remove 'undesired' word (inc, corp, etc.)
@@ -300,7 +306,6 @@ class StockToTrade():
 
         #Stock and ticker with each first letter of each word in uppercase
         new_keywords.append(string.capwords(stock_name.lower()))
-        new_keywords.append(string.capwords(symbol.lower()))
 
         #all letter of symbol in cap letter
         new_keywords.append(symbol.upper())
