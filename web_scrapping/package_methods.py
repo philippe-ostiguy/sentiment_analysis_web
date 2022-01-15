@@ -63,12 +63,29 @@ def get_data(dict,keys_):
 def text_cleanup(text_to_clean):
     """clean unwnanted part in string (html, emoji, newline) for sentiment analysis"""
 
-    #replace emojis for text
+    #replace emojis for text VOIR
     text_to_clean = emoji.demojize(text_to_clean, delimiters=(" ", " "))
+
+    #Lower case
+    text_to_clean = text_to_clean.lower()
 
     #remove newline
     text_to_clean = re.sub(r'\n\d', ' ', text_to_clean).replace("\n"," ")
 
+    # remove url
+    text_to_clean = re.sub(r'\\s*[^[:space:]/]+/[^[:space:]/]+', "", text_to_clean)
+    text_to_clean = re.sub('https?:\/\/[a-zA-Z0-9@:%._\/+~#=?&;-]*', ' ', text_to_clean)
+
+    # remove duplicated whitespaces
+    text_to_clean = text_to_clean.replace("  ", " ")
+
+    #Text cleaning
+    x = re.sub(r'\'\w+', '', x)
+    x = re.sub(r'\w*\d+\w*', '', x)
+    x = re.sub(r'\s{2,}', ' ', x)
+    x = re.sub(r'\s[^\w\s]\s', '', x)
+
+    #ICI ON NE NETTOIE PAS
     # remove mentions tickers ($ followed by ticker in Stocktwits)
     text_to_clean = re.sub(r'[$][A-Za-z][\S]*', ' ', text_to_clean)
 
@@ -76,24 +93,14 @@ def text_cleanup(text_to_clean):
     text_to_clean = re.sub(r'[#][A-Za-z0-9][\S]*', ' ', text_to_clean)
     text_to_clean = re.sub(r'[@][A-Za-z0-9][\S]*', ' ', text_to_clean)
 
-    # remove url
-    text_to_clean = re.sub(r'\\s*[^[:space:]/]+/[^[:space:]/]+', "", text_to_clean)
-    text_to_clean = re.sub('https?:\/\/[a-zA-Z0-9@:%._\/+~#=?&;-]*', ' ', text_to_clean)
-
-    #Lower case
-    #text_to_clean = text_to_clean.lower()
-
-    # Replace everything not a letter or apostrophe with a space
-    #text_to_clean = re.sub('[^a-zA-Z\']', ' ', text_to_clean)
-
-    # Remove single letter words
-    #text_to_clean = ' '.join([word for word in text_to_clean.split() if len(word) > 1])
-
     #remove punctuations
     text_to_clean = ' '.join(re.sub("[\.\,\!\?\:\;\-\=]", " ", text_to_clean).split())
 
-    # remove duplicated whitespaces
-    text_to_clean = text_to_clean.replace("  ", " ")
+    # Remove single letter words
+    text_to_clean = ' '.join([word for word in text_to_clean.split() if len(word) > 1])
+
+    # Replace everything not a letter or apostrophe with a space
+    #text_to_clean = re.sub('[^a-zA-Z\']', ' ', text_to_clean)
 
     return text_to_clean
 
