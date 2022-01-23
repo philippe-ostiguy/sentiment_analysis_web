@@ -67,7 +67,7 @@ def text_cleanup(text_to_clean):
     """
     According to this post : https://towardsdatascience.com/part-1-data-cleaning-does-bert-need-clean-data-6a50c9c6e9fd
      and some test I did in project `sentiment_analysis_text`, light data cleaning gives better results than heavy 
-     cleaning (removing hastage, @ and $ is not necessary as well as transforming emoji to text (package emoji and 
+     cleaning (removing hastage, @ and $ is not necessary as well as transforming emoji to text with package emoji and 
     function demojize)
     """
 
@@ -80,12 +80,6 @@ def text_cleanup(text_to_clean):
     # remove url
     text_to_clean = re.sub(r'\\s*[^[:space:]/]+/[^[:space:]/]+', "", text_to_clean)
     text_to_clean = re.sub('https?:\/\/[a-zA-Z0-9@:%._\/+~#=?&;-]*', ' ', text_to_clean)
-
-    # Text cleaning
-    text_to_clean = re.sub(r'\'\w+', '', text_to_clean)
-    text_to_clean = re.sub(r'\w*\d+\w*', '', text_to_clean)
-    text_to_clean = re.sub(r'\s{2,}', ' ', text_to_clean)
-    text_to_clean = re.sub(r'\s[^\w\s]\s', '', text_to_clean)
 
     # remove white space
     text_to_clean = text_to_clean.replace("  ", " ")
@@ -150,9 +144,7 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
         #need to do it every time on twitter as it doesn't load all the DOM from bottom to top
         if is_twitter:
             try:
-
                 twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
-
             #it means that the page doesn't exist and will generate an error
             except:
                 pass

@@ -80,8 +80,8 @@ class InitMain(InitProject):
                     (datetime.now().day == date_.day)):
                 raise Exception("Current day is a US Stock holiday. The market is closed. The program will shut down")
 
-        if (datetime.today().weekday()  >= 5):
-            raise Exception("Current day is the weekend. The market is closed. The program will shut down")
+        #if (datetime.today().weekday()  >= 5):
+         #  raise Exception("Current day is the weekend. The market is closed. The program will shut down")
 
 if __name__ == '__main__':
 
@@ -108,8 +108,8 @@ if __name__ == '__main__':
 
         #initialize all classes we want to webscrap data
         #ra_ = ws.RedditApi_(init, init_roberta) # Reddit
-        #sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
-        #sta_()
+        sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
+        sta_()
         ta = ws.TwitsApi(init, init_roberta) # Twitter
         ta()
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
             #stocktwits
 
             #init.pd_stock_sentiment = ra_.write_values()
-            #init.pd_stock_sentiment =  sta_.webscrap()
+            init.pd_stock_sentiment =  sta_.webscrap()
             init.pd_stock_sentiment = ta.webscrap()
 
             #calculate the metrics

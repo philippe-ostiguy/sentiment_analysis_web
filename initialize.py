@@ -78,9 +78,7 @@ class InitProject():
             chance of a negative sentiment and +1 with a 100% of a positive sentiment. Directional is applicable only
             for Stockwits (user can choose 'bullish' or 'bearish' when creating a twit).
         `self.time_ago` : int
-            Number of hours in the past we want to webscrape the data.By default, the value is for the same day.
-            If we want to search previous date, we would need to adjust the function `self.buffer_date_()` in
-            `stocktwits_api.py` and `twitter_api.py`
+            Number of hours in the past we want to webscrape the data. We can search for more than 24 hours ago
         `self.us_holidars` : list
             List that contains the US Stock Holiday
         `self.pd_stock_sentiment` : pandas.DataFrame
@@ -139,7 +137,7 @@ class InitProject():
         self.comment_source = ['reddit','stocktwit','twitter']
         self.keywords_to_remove = ['limited', 'Limited','Inc.','INC','Inc', 'Corporation', 'Corp.', 'Corp', 'Co.','Co',
                                    'Ltd','ltd',',']
-        self.time_ago = 6
+        self.time_ago = 1*24
         self.pause_time = 2
         self.short_level = 25
         self.min_cap = 500*10**6
@@ -151,7 +149,7 @@ class InitProject():
         self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`
         self.limit = 100000 #max comments to webscrap on reddit in `reddit_api.py`
 
-        self.stock_dictionnary = {'GIB' : 'GIB'} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
+        self.stock_dictionnary = {'FB' : 'FB'} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
 
         #list of variables that are not necessary to change
         self.output_ = 'output/' #name of the folder where the output are stored
@@ -241,15 +239,24 @@ class InitProject():
 
             i = 0
             for holiday_ in holidays_.findAll('td')[1:]:
+
+                #remove white space
+                text_tempo = holiday_.text
+                text_ = holiday_.text.replace('  ', ' ')
+                while text_ != text_tempo:
+                    text_ = text_.replace('  ', ' ')
+                    text_tempo = text_.replace('  ', ' ')
+
                 if "—" in holiday_.text:
                     i += 1
                     continue
 
-                month_ = holiday_.text.split(' ')[1]
-                day_ = re.sub("[^0-9]", "", holiday_.text.split(' ')[2])
+                month_ = text_.split(' ')[1]
+                day_ = re.sub("[^0-9]", "",text_.split(' ')[2])
                 year_ = years_[i]
                 date_ = "-".join([year_, month_, day_])
                 self.us_holidays.append(datetime.strptime(date_, '%Y-%B-%d'))
+
                 i += 1
 
         if not self.us_holidays :

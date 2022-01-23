@@ -89,7 +89,7 @@ class StockTwitsApi():
         self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
         self.stock_twits = "" #contains the twit fetched from stocktwits (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
-        self.buffer_date_ = 60
+        self.buffer_date_ = 40
 
         self.which_driver = 'chrome' #driver we takes to webscrap the data, chrome for twitter should be used
 
@@ -118,35 +118,45 @@ class StockTwitsApi():
                                                stocktwit_class = self.stocktwit_class)
         return self.write_values()
 
-
-    def convert_time(self,search_time,is_today):
+    def convert_time(self, search_time, is_today):
         """Method to convert time readable in the Xpath in Selenium.
         """
 
         text = ''
-       #current search time is today
+        # current search time is today
         if is_today:
             if search_time.hour >= 12:
-               period_of_day = ' PM'
+                period_of_day = ' PM'
             else:
-               period_of_day = ' AM'
+                period_of_day = ' AM'
 
-            hour =search_time.hour
+            hour = search_time.hour
+            # midnight
             if hour == 0:
                 hour = 12
 
+            # transform non 'am' 'pm to 'am'/'pm'
+            if hour > 12:
+                hour -= 12
+
+            # need to add a zero at the beginning if the hour is below 10
+            if hour < 10:
+                hour_ = '0' + str(hour)
+            elif hour >= 10:
+                hour_ = str(hour)
+
             minute = search_time.minute
-            if minute <10:
+            if minute < 10:
                 minute_ = '0' + str(minute)
-            else :
+            else:
                 minute_ = str(minute)
 
-            text = [str(hour),':', minute_,period_of_day]
+            text = [hour_, ':', minute_, period_of_day]
             self.date_ = ''.join(text)
 
         else:
-            #Write the day in Xpath format for stocktwits
-            text = [str(search_time.month), str(search_time.day),search_time.strftime('%y')]
+            # Write the day in Xpath format for stocktwits
+            text = [str(search_time.month), str(search_time.day), search_time.strftime('%y')]
             self.date_ = ('/'.join(text))
 
     def buffer_date(self):
@@ -154,29 +164,42 @@ class StockTwitsApi():
          Ex : We are looking for 'Nov 10' on a stock, but the volume is low, we may find data before, but not exactly
          on November 10. It depends on the size of the buffer `self.buffer_date_`
 
-         In Stocktwits, We write the time minutes by minutes until we reach yesterday's time. We start seeing the
-         date in Stocktwits starting from yesterday only. Ex: If yesterday is Nov 20, then all posts from today won't
+         If we are looking for something the same day, we wll write a buffer minutes by minutes from where we want to
+         search until yesterday. Ex : If we are looking for something 1 hour ago and it's on the same day,
+         then we will have 1 hour ago, 1 hour and 1 minute ago, 1 hour and 2 minutes ago
+
+         If we are looking for something before today (yesterday or earlier), we have a buffer
+         in term of datesEx: If yesterday is Nov 20, then all posts from today won't
          have a date in the class time (only hours and minutes ago it was published. However, starting from November
-         20 and before, we will see 'Nov 20', 'Nov 19', etc.
+         20 and before, we will see 'Nov 20', 'Nov 19', 'Nov 18', etc.
         """
 
-        tempo_time = self.init.time_ago
         now = datetime.now()
-        period_of_day=''
-        yesterday = now - timedelta(days=1)
         search_time = now - timedelta(hours=self.init.time_ago)
+
+        #check if we search for same day or not
+        if search_time.day == now.day:
+            same_day = True
+            #set date until where we have buffer to yesterday
+            delta_ = 1 #get buffer for every minute
+            furthest_date = now - timedelta(days=1)
+        else :
+            same_day= False
+            #set date until where we have buffer depending on `self.buffer_date_` and `time_ago`
+            delta_ = 1*24*60 #number of minutes in 1 day to get 1 buffer per day
+            furthest_date = now - timedelta(hours=(self.buffer_date_*24 + self.init.time_ago))
 
         iteration = 1
         #we need to write minute by minute to search time in stocktwits as time in post show the minutes.
         #Ex : 10:05 AM
         while(yesterday.day != search_time.day):
-            self.convert_time(search_time,True)
+            self.convert_time(search_time,same_day)
             if iteration == 1:
                 self.date__ += ''.join(['contains(text(),', '"', self.date_, '")'])
             else:
                 self.date__ += ''.join([' or contains(text(),', '"', self.date_, '")'])
 
-            search_time-=timedelta(minutes=1)
+            search_time-=timedelta(minutes=delta_)
             iteration +=1
 
 
