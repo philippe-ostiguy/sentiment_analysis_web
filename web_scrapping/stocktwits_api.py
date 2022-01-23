@@ -190,7 +190,6 @@ class StockTwitsApi():
                 bullish = 'Bullish'
                 bearish = 'Bearish'
 
-                #ICI
                 # check if it contains bullish or bearish or not in the class
                 # then we are able to extract the twit only
 

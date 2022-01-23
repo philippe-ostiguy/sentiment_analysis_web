@@ -167,6 +167,7 @@ class TwitsApi():
             for twit in self.twits:
                 self.twit_dictionary = {}  # dictionary with information from twits
                 func(self,twit)
+                t = 5
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first",ignore_index=True)
             return self.init.pd_stock_sentiment

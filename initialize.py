@@ -151,7 +151,7 @@ class InitProject():
         self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`
         self.limit = 100000 #max comments to webscrap on reddit in `reddit_api.py`
 
-        self.stock_dictionnary = {} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
+        self.stock_dictionnary = {'GIB' : 'GIB'} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
 
         #list of variables that are not necessary to change
         self.output_ = 'output/' #name of the folder where the output are stored
@@ -240,7 +240,7 @@ class InitProject():
         for holidays_ in table.findAll('tr')[1:]:
 
             i = 0
-            for holiday_ in holidays_.findAll('td'):
+            for holiday_ in holidays_.findAll('td')[1:]:
                 if "—" in holiday_.text:
                     i += 1
                     continue
