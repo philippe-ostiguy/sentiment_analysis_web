@@ -65,10 +65,9 @@ def text_cleanup(text_to_clean):
 
     # LIGHT DATA CLEANING
     """
-    According to this post : https: // towardsdatascience.com / part - 1 - data - cleaning - does - bert - need - clean - data - 6
-    a50c9c6e9fd
-     and some test I did, light data cleaning is better than heavy cleaning
-    (removing hastage, @ and $ is not necessary as well as transforming emoji to text (package emoji and 
+    According to this post : https://towardsdatascience.com/part-1-data-cleaning-does-bert-need-clean-data-6a50c9c6e9fd
+     and some test I did in project `sentiment_analysis_text`, light data cleaning gives better results than heavy 
+     cleaning (removing hastage, @ and $ is not necessary as well as transforming emoji to text (package emoji and 
     function demojize)
     """
 
