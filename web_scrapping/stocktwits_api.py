@@ -187,12 +187,14 @@ class StockTwitsApi():
             same_day= False
             #set date until where we have buffer depending on `self.buffer_date_` and `time_ago`
             delta_ = 1*24*60 #number of minutes in 1 day to get 1 buffer per day
+            t = timedelta(hours=(self.buffer_date_*24 + self.init.time_ago))
             furthest_date = now - timedelta(hours=(self.buffer_date_*24 + self.init.time_ago))
 
         iteration = 1
         #we need to write minute by minute to search time in stocktwits as time in post show the minutes.
         #Ex : 10:05 AM
-        while(yesterday.day != search_time.day):
+        while(furthest_date.day != search_time.day or furthest_date.month != search_time.month or
+              furthest_date.year != search_time.year):
             self.convert_time(search_time,same_day)
             if iteration == 1:
                 self.date__ += ''.join(['contains(text(),', '"', self.date_, '")'])

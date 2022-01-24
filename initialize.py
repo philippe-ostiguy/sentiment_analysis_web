@@ -127,6 +127,18 @@ class InitProject():
         `self.min_sentiment_in` : int
             Minimum sentiment level to keep a trade when we already in. Ex: A sentiment level below -15%, we stay bear,
             above +15%, we stay bull
+        `self.time_ago_trend` : int
+            same as `self.time_ago` but for trending stock on stocktwits. It is lower than `self.time_ago` and should
+            be around 4 to 6 hours (`self.time_ago_trending = 4 to 6`) as there are generally a lot more comments
+            for the trending stocks on Stocktwits. We don't want to webscrap forever (1 day of data is a lot for
+            the trending stock on Stocktwits)
+        `self.time_ago_no_trend`
+            same as `self.time_ago` but for none trending stock on Stocktwits (like highly shorted stock as shown on
+            finviz). It should be higher than `self.time_ago_trend` as these stocks have generally less comments
+            on stocktwits, twitter and reddit
+        `self.trending_stock` : dict
+            we say for each stock if it is a Stocktwits trending stock, so that we decide if we use `self.time_ago`
+            or `self.time_ago_trending`
         """
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
@@ -137,11 +149,14 @@ class InitProject():
         self.comment_source = ['reddit','stocktwit','twitter']
         self.keywords_to_remove = ['limited', 'Limited','Inc.','INC','Inc', 'Corporation', 'Corp.', 'Corp', 'Co.','Co',
                                    'Ltd','ltd',',']
-        self.time_ago = 1*24
+        self.time_ago = 0
+        self.time_ago_no_trend = 3*24 #should be higher than `self.time_ago_trend`
+        self.time_ago_trend = 6
+        self.trending_stock  = {}
         self.pause_time = 2
-        self.short_level = 25
+        self.short_level = 30
         self.min_cap = 500*10**6
-        self.min_comments = 100
+        self.min_comments = 60
         self.min_sentiment = 20
         self.min_sentiment_in = 15
 
@@ -149,7 +164,7 @@ class InitProject():
         self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`
         self.limit = 100000 #max comments to webscrap on reddit in `reddit_api.py`
 
-        self.stock_dictionnary = {'FB' : 'FB'} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
+        self.stock_dictionnary = {} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
 
         #list of variables that are not necessary to change
         self.output_ = 'output/' #name of the folder where the output are stored

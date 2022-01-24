@@ -54,14 +54,20 @@ class StockToTrade():
 
 
     def __call__(self):
-        #if we already know some stock we want to webscrap data. Set in `self.stock_dictionary` in `initialise.py`
-        for ticker in self.init.stock_dictionnary:
-            self.adjust_keywords(ticker,self.init.stock_dictionnary[ticker])
-        #self.get_trending()
-        #self.shorted_finviz()
+        self.get_trending()
+        self.shorted_finviz()
         self.check_position()
         self.check_cap()
         t=5
+
+    def set_trending(self,stock,is_trending):
+        """ We set in the dict `self.trending_stock` if the stock is a trending stock `True` or not `False`
+        on stocktwits. If it is a trending stock, then we will retrieve comments less further ago (using
+        `self.time_ago_trend` vs `self.time_ago_no_trend`"""
+
+        #make sure the stock doesn't exist in the dictionary yet
+        if not stock in self.init.trending_stock.keys():
+            self.init.trending_stock[stock] = is_trending
 
     def check_position(self):
         """"""
@@ -141,10 +147,12 @@ class StockToTrade():
             stock_name =  self.get_data(stock,['title'])
             #make sure the ticker doesn't already in our list of stocks we want to webscrap before adding it to the list
             if not symbol in self.init.stock_dictionnary:
-                self.adjust_keywords(symbol,stock_name)
+                symbol = self.adjust_keywords(symbol,stock_name)
 
             #we reached the nb of trending stocks we wanted
             i+=1
+
+            self.set_trending(symbol, True)
             if i == self.nb_trending:
                 break
 
@@ -207,10 +215,8 @@ class StockToTrade():
                 break
 
             for table in tables:
-
                #getting the ticker
                 for row in table.findAll('td')[1:2]:
-
                     # we check if we already have the symbol in the list. It will tell us that we are at the end
                     # of the list in finviz
                     if row.text in symbol_list:
@@ -227,13 +233,15 @@ class StockToTrade():
                 if symbol_exist:
                     break
 
-                self.adjust_keywords(ticker, company)
+                ticker = self.adjust_keywords(ticker, company)
+                self.set_trending(ticker, False)
+
             #go to the next page
             ticker_number +=20
-
+    """
     def shorted_stocks(self):
-        """Method to get the most shorted stock on https://www.highshortinterest.com/. See begginning of the module
-        `initialise.py` to understand the parameters used in this method"""
+        Method to get the most shorted stock on https://www.highshortinterest.com/. See begginning of the module
+        `initialise.py` to understand the parameters used in this method
 
         resp = requests.get('https://www.highshortinterest.com/')
         soup = bs.BeautifulSoup(resp.text, 'lxml')
@@ -271,6 +279,7 @@ class StockToTrade():
                 stock_name = cell.text
 
             self.adjust_keywords(ticker,stock_name)
+    """
 
     def adjust_keywords(self,symbol,stock_name):
         """Method that adjust the keyword for the stock we are searching on Reddit so that they can be found easily.
@@ -298,9 +307,6 @@ class StockToTrade():
         # remove duplicated whitespaces
         stock_name = stock_name.replace("  ", " ")
 
-        #remove trailing and leading space
-        symbol = symbol.strip()
-
         #stock with characters in lower case
         new_keywords.append(stock_name.lower())
 
@@ -311,6 +317,7 @@ class StockToTrade():
         new_keywords.append(symbol.upper())
 
         self.init.stock_dictionnary[symbol] = new_keywords
+        return symbol
 
     def get_data(self,dict, keys_):
         """Function that stores the data from a dictionary with the specific keys in a new dictionary

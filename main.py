@@ -96,78 +96,85 @@ if __name__ == '__main__':
     logging.basicConfig(filename=init.logger_file, level=logging.ERROR, filemode="w",
                         format=logformat, datefmt=datefmt)
 
-    try:
+    #try:
 
-        #decide which stock we webscrap
-        stt_ = stt.StockToTrade(init)
-        stt_()
+    #decide which stock we webscrap
+    stt_ = stt.StockToTrade(init)
+    stt_()
 
-        #initialize the Roberta sentiment analysis
-        init_roberta = sa.TwitAnalysis(init)
-        init_roberta() #built-in call method to initialize the model
+    #initialize the Roberta sentiment analysis
+    init_roberta = sa.TwitAnalysis(init)
+    init_roberta() #built-in call method to initialize the model
 
-        #initialize all classes we want to webscrap data
-        #ra_ = ws.RedditApi_(init, init_roberta) # Reddit
-        sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
-        sta_()
-        ta = ws.TwitsApi(init, init_roberta) # Twitter
-        ta()
+    #initialize all classes we want to webscrap data
+    ra_ = ws.RedditApi_(init, init_roberta) # Reddit
+    sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
+    sta_()
+    ta = ws.TwitsApi(init, init_roberta) # Twitter
+    ta()
 
-        #initialize the class to calculate the metrics
-        cm = ps.CalculateMetrics(init)
+    #initialize the class to calculate the metrics
+    cm = ps.CalculateMetrics(init)
 
-        #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
-        #ra_.webscrap()
+    #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
+    ra_.webscrap()
 
-        for stock,keywords in init.stock_dictionnary.items():
-            init.current_stock = stock #changing to current stock in loop
-            init.pd_stock_sentiment.drop(init.pd_stock_sentiment.index, inplace=True) #drop values in the pandas Dataframe
-            # fetching the data on social media and twitter
+    for stock,keywords in init.stock_dictionnary.items():
+        #deciding how far we webscrap data depending if it is a trending stock on Stocktwits (generally a lot
+        #of recent comments
+        if init.trending_stock[stock] == True:
+            init.time_ago = init.time_ago_trend
+        else:
+            init.time_ago = init.time_ago_no_trend
 
-            # return the comments with sentiment analysis using Twitter-based Roberta Transformer on reddit, twitter,
-            #stocktwits
+        init.current_stock = stock #changing to current stock in loop
+        init.pd_stock_sentiment.drop(init.pd_stock_sentiment.index, inplace=True) #drop values in the pandas Dataframe
+        # fetching the data on social media and twitter
 
-            #init.pd_stock_sentiment = ra_.write_values()
-            init.pd_stock_sentiment =  sta_.webscrap()
-            init.pd_stock_sentiment = ta.webscrap()
+        # return the comments with sentiment analysis using Twitter-based Roberta Transformer on reddit, twitter,
+        #stocktwits
 
-            #calculate the metrics
-            init = cm()
+        init.pd_stock_sentiment = ra_.write_values()
+        init.pd_stock_sentiment =  sta_.webscrap()
+        init.pd_stock_sentiment = ta.webscrap()
 
-        #decide the stock we take a position (or keep/exit)
-        #dp_ = stt.DecidePosition(init)
-        #dp_()
+        #calculate the metrics
+        init = cm()
 
-        #Wwriting the file with the resuts
-        init.pd_metrics.to_csv(init.results_file,encoding='utf-8')
-        #writing the time it took to run the program
-        init.pd_timer.to_csv(init.timer_file,encoding='utf-8')
+    #decide the stock we take a position (or keep/exit)
+    #dp_ = stt.DecidePosition(init)
+    #dp_()
 
-        os.system(f'say -v "Victoria" "The program is done. You can check it out."')
+    #Wwriting the file with the resuts
+    init.pd_metrics.to_csv(init.results_file,encoding='utf-8')
+    #writing the time it took to run the program
+    init.pd_timer.to_csv(init.timer_file,encoding='utf-8')
 
-        #sending a SMS to say the program worked
-        client = Client(init.twilio_sid, init.twilio_auth)
-        message = client.messages \
-            .create(
-            body="The webscrapping worked",
-            from_=init.from_phone,
-            to=init.to_phone
-        )
+    os.system(f'say -v "Victoria" "The program is done. You can check it out."')
 
-    except Exception as e:
-        #logging the error in the file
-        logging.error(e)
+    #sending a SMS to say the program worked
+    client = Client(init.twilio_sid, init.twilio_auth)
+    message = client.messages \
+        .create(
+        body="The webscrapping worked",
+        from_=init.from_phone,
+        to=init.to_phone
+    )
 
-        os.system(f'say -v "Victoria" "The program crashed. Check it please"')
+    #except Exception as e:
+    #logging the error in the file
+    logging.error(e)
 
-        #sending a SMS to say the program did not work
-        client = Client(init.twilio_sid, init.twilio_auth)
-        message = client.messages \
-            .create(
-            body="The webscrapping did not work",
-            from_=init.from_phone,
-            to=init.to_phone
-        )
+    os.system(f'say -v "Victoria" "The program crashed. Check it please"')
+
+    #sending a SMS to say the program did not work
+    client = Client(init.twilio_sid, init.twilio_auth)
+    message = client.messages \
+        .create(
+        body="The webscrapping did not work",
+        from_=init.from_phone,
+        to=init.to_phone
+    )
 
         #print(e)
 
