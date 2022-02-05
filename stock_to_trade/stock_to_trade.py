@@ -140,9 +140,9 @@ class StockToTrade():
         """
 
         response = requests.get(self.stocktwit_trending)
-        i = 0
-
-        for stock in response.json()['symbols']:
+        i =0
+        symbol_list = response.json()['symbols']
+        for stock in symbol_list:
             symbol = self.get_data(stock,['symbol'])
             stock_name =  self.get_data(stock,['title'])
             #make sure the ticker doesn't already in our list of stocks we want to webscrap before adding it to the list
@@ -174,7 +174,7 @@ class StockToTrade():
                           '(KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
         resp = requests.get(url, headers=headers)
         soup = bs.BeautifulSoup(resp.text, 'lxml')
-        return soup.find_all('tr', {'class': class_str})
+        return soup.find_all('tr', {'valign': class_str})
 
 
     def shorted_finviz(self):
@@ -199,22 +199,9 @@ class StockToTrade():
                             str(ticker_number)])
 
             tables = []
-            try:
-                tables = self.call_bs(url_, 'tr', 'table-dark-row-cp')
-            except:
-                pass
+            tables = self.call_bs(url_, 'tr', 'top')
 
-            try:
-                table_ = self.call_bs(url_, 'tr', 'table-light-row-cp')
-                tables +=  table_
-            except:
-                pass
-
-            #end of page
-            if tables == []:
-                break
-
-            for table in tables:
+            for table in tables[1:]:
                #getting the ticker
                 for row in table.findAll('td')[1:2]:
                     # we check if we already have the symbol in the list. It will tell us that we are at the end
@@ -238,56 +225,15 @@ class StockToTrade():
 
             #go to the next page
             ticker_number +=20
-    """
-    def shorted_stocks(self):
-        Method to get the most shorted stock on https://www.highshortinterest.com/. See begginning of the module
-        `initialise.py` to understand the parameters used in this method
 
-        resp = requests.get('https://www.highshortinterest.com/')
-        soup = bs.BeautifulSoup(resp.text, 'lxml')
-        # Grab the table with the US Stock holidays (first table)
-        table = soup.find_all('table', {'class': 'stocks'})[0]
-        if table == []:
-            raise Exception("Table to get the most shorted stock in `self.shorted_stocks()` doesn't exist")
-
-        for rows in table.findAll('tr')[1:]:
-            short_below = False
-            stock_exist = False
-            #getting the short interest
-            for cell in rows.findAll('td')[3:4]:
-                #remove the '%' mark
-                short_interest = float(cell.text.replace('%',''))
-                #check if current short interest is below our minimum 'acceptable' thresold
-                if short_interest < self.init.short_level:
-                    short_below = True
-                    break
-            #exiting as the next stocks will have short interest lower than our minimum thresdol `self.init.short_level`
-            if short_below:
-                continue
-
-            #getting the ticker
-            for cell in rows.findAll('td')[0:1]:
-                ticker = cell.text
-                #check if stock exist already in our list of stocks we want to webscrap
-                if ticker in self.init.stock_dictionnary:
-                    stock_exist = True
-            if stock_exist:
-                continue
-
-            #getting the company name
-            for cell in rows.findAll('td')[1:2]:
-                stock_name = cell.text
-
-            self.adjust_keywords(ticker,stock_name)
-    """
 
     def adjust_keywords(self,symbol,stock_name):
         """Method that adjust the keyword for the stock we are searching on Reddit so that they can be found easily.
         It returns the new dictionary with adjusted keywords. The list of keywords we will be looking for a stock will
-        be the ticker in capitalized letter, the name of the company in lower case and the name of the company with the
-        first letter in capitalized letter
+        be the ticker in capitalized letter only. We could also add the name of the company in lower case and the
+        name of the company with the first letter in capitalized letter (they are commented below)
 
-        Ex: For Apple, the keywords will be AAPL, Apple and apple
+        Ex: For Apple, the keyword will be AAPL
 
         N.B. It's risky to search the ticker in lower case. Let's take the SPY, we will search for 'spy' which has
         a total different meaning"""
@@ -308,10 +254,10 @@ class StockToTrade():
         stock_name = stock_name.replace("  ", " ")
 
         #stock with characters in lower case
-        new_keywords.append(stock_name.lower())
+        #new_keywords.append(stock_name.lower())
 
         #Stock and ticker with each first letter of each word in uppercase
-        new_keywords.append(string.capwords(stock_name.lower()))
+        #new_keywords.append(string.capwords(stock_name.lower()))
 
         #all letter of symbol in cap letter
         new_keywords.append(symbol.upper())

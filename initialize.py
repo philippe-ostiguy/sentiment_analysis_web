@@ -147,7 +147,7 @@ class InitProject():
         self.columns_metrics = ["Total average sentiment","Total number of comments", "Stocktwits sentiment accuracy",
                                 "Average sentiment for ", "Nb of comments for "]
         self.comment_source = ['reddit','stocktwit','twitter']
-        self.keywords_to_remove = ['limited', 'Limited','Inc.','INC','Inc', 'Corporation', 'Corp.', 'Corp', 'Co.','Co',
+        self.keywords_to_remove = ['limited', 'Limited','Inc.','INC', 'Corporation', 'Corp.', 'Corp', 'Co.',
                                    'Ltd','ltd',',']
         self.time_ago = 0
         self.time_ago_no_trend = 7*24 #should be higher than `self.time_ago_trend`

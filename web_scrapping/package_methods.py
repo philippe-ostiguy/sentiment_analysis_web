@@ -80,6 +80,8 @@ def text_cleanup(text_to_clean):
     # remove url
     text_to_clean = re.sub(r'\\s*[^[:space:]/]+/[^[:space:]/]+', "", text_to_clean)
     text_to_clean = re.sub('https?:\/\/[a-zA-Z0-9@:%._\/+~#=?&;-]*', ' ', text_to_clean)
+    text_to_clean = re.sub(r'^https?:\/\/.*[\r\n]*', ' ', text_to_clean)
+
 
     # remove white space
     text_to_clean = text_to_clean.replace("  ", " ")
