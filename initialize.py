@@ -150,7 +150,7 @@ class InitProject():
         self.keywords_to_remove = ['limited', 'Limited','Inc.','INC','Inc', 'Corporation', 'Corp.', 'Corp', 'Co.','Co',
                                    'Ltd','ltd',',']
         self.time_ago = 0
-        self.time_ago_no_trend = 3*24 #should be higher than `self.time_ago_trend`
+        self.time_ago_no_trend = 7*24 #should be higher than `self.time_ago_trend`
         self.time_ago_trend = 6
         self.trending_stock  = {}
         self.pause_time = 2
