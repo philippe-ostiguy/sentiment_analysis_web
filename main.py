@@ -107,7 +107,7 @@ if __name__ == '__main__':
     init_roberta() #built-in call method to initialize the model
 
     #initialize all classes we want to webscrap data
-    init.time_ago = init.time_ago_trend
+    init.time_ago = init.time_ago_trend #set it by default to trending stock for reddit. We need a value here
     ra_ = ws.RedditApi_(init, init_roberta) # Reddit
     #sta_ = ws.StockTwitsApi(init, init_roberta) # Stocktwits
     #sta_()
@@ -120,6 +120,8 @@ if __name__ == '__main__':
     #webscrapping data for reddit only one time (all comments for the different stocks are on the same posts)
     ra_.webscrap()
 
+    # à enlever
+    init.trending_stock['FB'] = True
     for stock,keywords in init.stock_dictionnary.items():
         #deciding how far we webscrap data depending if it is a trending stock on Stocktwits (generally a lot
         #of recent comments

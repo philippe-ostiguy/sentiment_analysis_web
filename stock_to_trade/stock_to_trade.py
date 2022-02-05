@@ -253,14 +253,14 @@ class StockToTrade():
         # remove duplicated whitespaces
         stock_name = stock_name.replace("  ", " ")
 
+        #all letter of symbol in cap letter
+        new_keywords.append(symbol.upper())
+
         #stock with characters in lower case
         #new_keywords.append(stock_name.lower())
 
         #Stock and ticker with each first letter of each word in uppercase
         #new_keywords.append(string.capwords(stock_name.lower()))
-
-        #all letter of symbol in cap letter
-        new_keywords.append(symbol.upper())
 
         self.init.stock_dictionnary[symbol] = new_keywords
         return symbol

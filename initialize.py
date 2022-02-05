@@ -90,7 +90,7 @@ class InitProject():
             key (ticker). On twitter and stocktwits, URL are based on the 'ticker', ex :
             https://twitter.com/search?q=%24gib&src=typed_query&f=live.
             If we know some stocks we want to webscrap, we must enter it as a ticker as a string (capitalisation) with
-            the company name as a string. Ex: self.stock_dictionary = {'TSLA' : 'Tesla'}
+            the company name as a string. Ex: self.stock_dictionary = {'TSLA' : ['Tesla', 'TSLA']}
         `self.current_stock` : dict
             current dictionary of `self.stockdictionary` we are webscrapping data on the social media
         `self.pause_time` : long
@@ -164,7 +164,7 @@ class InitProject():
         self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`
         self.limit = 100000 #max comments to webscrap on reddit in `reddit_api.py`
 
-        self.stock_dictionnary = {} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
+        self.stock_dictionnary = {'FB':['FB']} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
 
         #list of variables that are not necessary to change
         self.output_ = 'output/' #name of the folder where the output are stored

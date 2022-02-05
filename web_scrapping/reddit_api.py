@@ -108,14 +108,26 @@ class RedditApi_():
             self.reddit_dict_ = {}
             for comment in self.reddit_comments:
                 # check if the post contains the stock (keywords) we are looking for
+                is_breaking = False
                 for stock,keywords in self.init.stock_dictionnary.items():
                     #while looping the dictionary with keywords, we check if we are the current stock
                     #that we want to get the comments
                     if stock == self.init.current_stock:
                         #check if the comment contains at least one of the keyword for this stock
-                        if any(keyword in comment for keyword in keywords):
-                            func(self,comment)
-                            break # not analyzing the same post twice (in case we have more than 1 keyword)
+                        for keyword in keywords:
+                            if keyword in comment:
+                                left_substring = comment.partition(keyword)[0]
+                                right_substring = comment.partition(keyword)[2]
+                                #Make sure that the ticker is not followed or preceded by an alphanumeric character.
+                                #Ex: ticker 'ED' could be preceded by 'F' which is 'FED' and not relevant to 'ED' ticker
+                                if not left_substring.isalnum() and not right_substring.isalnum():
+                                    func(self,comment)
+                                    break # not analyzing the same post twice (in case we have more than 1 keyword)
+                                    is_breaking = True
+                        if is_breaking:
+                            break
+
+
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first",ignore_index=True)
             return self.init.pd_stock_sentiment
