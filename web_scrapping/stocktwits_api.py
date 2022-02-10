@@ -93,14 +93,8 @@ class StockTwitsApi():
 
         self.which_driver = 'chrome' #driver we takes to webscrap the data, chrome for twitter should be used
 
-
-    def __call__(self):
-        """built-in function to initialize values"""
-
-        self.buffer_date()
         #class to check if the page is not empty on stocktwit
         self.stocktwit_class = '//a[@class="{}"]'.format(self.class_time)
-        self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
 
@@ -108,6 +102,9 @@ class StockTwitsApi():
     def webscrap(self):
         """Performs all the method necessary to webscrap the content on stocktwits and analyse the mood of the
         comments"""
+
+        self.buffer_date()
+        self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
 
         self.stock_twits = ""
         self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/',self.init.current_stock])

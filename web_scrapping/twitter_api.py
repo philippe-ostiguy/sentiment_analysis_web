@@ -85,13 +85,6 @@ class TwitsApi():
         self.twit_dictionary = {}  # dictionary with information from twits
 
         self.which_driver = 'firefox' #driver we takes to webscrap the data, firefox for twitter should be used
-
-    def __call__(self):
-        """built-in function to initialize values"""
-
-        self.buffer_date()
-        self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
-        # elements we are returning to analyse the comment itself
         self.posts_to_return = "//div[@class='{}']".format(self.class_twits)
 
     @pm.decorator_timer(2) #2 is for twitter in `self.comment_source` in `initialise.py`
@@ -99,6 +92,8 @@ class TwitsApi():
         """Performs all the method necessary to webscrap the content on twitter and analyse the mood of the
         comments"""
 
+        self.buffer_date()
+        self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         self.twits = "" #we need to reinitialise the list which contains the comments everytime we fetch data
                         #for a new stock
         self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', self.init.current_stock,

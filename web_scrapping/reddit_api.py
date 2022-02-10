@@ -116,8 +116,17 @@ class RedditApi_():
                         #check if the comment contains at least one of the keyword for this stock
                         for keyword in keywords:
                             if keyword in comment:
-                                left_substring = comment.partition(keyword)[0]
-                                right_substring = comment.partition(keyword)[2]
+
+                                try :
+                                    left_substring = comment.partition(keyword)[0][-1]
+                                except:
+                                    left_substring = '' #keyword at the beggining
+
+                                try:
+                                    right_substring = comment.partition(keyword)[2][0]
+                                except:
+                                    right_substring = '' #keyword at the end of sentence
+
                                 #Make sure that the ticker is not followed or preceded by an alphanumeric character.
                                 #Ex: ticker 'ED' could be preceded by 'F' which is 'FED' and not relevant to 'ED' ticker
                                 if not left_substring.isalnum() and not right_substring.isalnum():
