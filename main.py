@@ -42,6 +42,7 @@ import os
 from twilio.rest import Client
 import logging
 import csv
+import torch
 
 class InitMain(InitProject):
     """Class that initializes global value for the project and performs some checks and stops the program if necessary
@@ -119,7 +120,7 @@ if __name__ == '__main__':
         #ra_.webscrap()
 
         # à enlever
-        init.trending_stock['FB'] = True
+        init.trending_stock['ARCH'] =False
         for stock,keywords in init.stock_dictionnary.items():
             #deciding how far we webscrap data depending if it is a trending stock on Stocktwits (generally a lot
             #of recent comments
@@ -151,16 +152,17 @@ if __name__ == '__main__':
         #writing the time it took to run the program
         init.pd_timer.to_csv(init.timer_file,encoding='utf-8')
 
-        os.system(f'say -v "Victoria" "The program is done. You can check it out."')
+        #os.system(f'say -v "Victoria" "The program is done. You can check it out."')
 
         #sending a SMS to say the program worked
+        """
         client = Client(init.twilio_sid, init.twilio_auth)
         message = client.messages \
             .create(
             body="The webscrapping worked",
             from_=init.from_phone,
             to=init.to_phone
-        )
+        )"""
 
     except Exception as e:
         #logging the error in the file

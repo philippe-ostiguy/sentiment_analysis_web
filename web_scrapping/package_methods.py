@@ -123,7 +123,7 @@ def webscrap_content(which_driver,posts_to_return,end_point,pause_time,date_to_s
     time.sleep(pause_time)
     driver.quit()
 
-    return twitter_post
+    return user,twitter_post
 
 def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter,stocktwit_class):
     """Method that scrolls until we find the value, then stops. It search for a date and the class containg
@@ -135,6 +135,7 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
     exist = None
     twitter_tempo = []
     twitter_post = []
+    user = []
     while not element_:
         #we need to make it sleep, (between 1 and 2 minimum) otherwise the browser doesn't have enough time to load
         time.sleep(1.5)
@@ -146,7 +147,13 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
         #need to do it every time on twitter as it doesn't load all the DOM from bottom to top
         if is_twitter:
             try:
-                twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
+                for post in driver.find_elements_by_xpath(posts_to_return):
+                    text_splitting = post.text.split('\n')
+                    user.append(''.join(text_splitting[:1]))
+                    twitter_post.append(' '.join(text_splitting[4:]))
+                    t=5
+
+                #twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
             #it means that the page doesn't exist and will generate an error
             except:
                 pass
@@ -169,9 +176,9 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
             twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
         except :
             return []
-    return twitter_post
+    return user,twitter_post
 
-def write_values(comment, pv, model,source, dict_):
+def write_values(comment, pv, model,source, dict_,user=None):
     """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
      (-1 being the most negative and +1 being the most positive and write different values in the
      pandas DataFrame `self.pd_stock_sentiment`"""
@@ -183,6 +190,7 @@ def write_values(comment, pv, model,source, dict_):
         dict_[pv.columns_sentiment[0]] = tempo_comment
         dict_[pv.columns_sentiment[1]] = model.roberta_analysis(tempo_comment)
         dict_[pv.columns_sentiment[3]] = pv.comment_source[source]
+        dict_[pv.columns_sentiment[4]] = user
         pv.pd_stock_sentiment = pv.pd_stock_sentiment.append \
             (dict_, ignore_index=True)
 

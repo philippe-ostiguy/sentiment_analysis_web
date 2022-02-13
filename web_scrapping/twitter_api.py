@@ -75,12 +75,15 @@ class TwitsApi():
         self.init_sentiment = init_sentiment
 
         self.class_time = 'css-4rbku5 css-18t94o4 css-901oao r-14j79pv r-1loqt21 r-1q142lx r-37j5jr r-a023e6 ' \
-                          'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
-        self.class_twits = 'css-901oao r-18jsvk2 r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0'
+                         'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
+        self.class_twits = 'css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-kzbkwu'  # time
+
+        #self.class_twits = 'css-901oao r-18jsvk2 r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0'
 
         self.buffer_date_ = 60
         self.date_ = ''  # date if different from today in the Xpath
         self.date__ = '' #list of date set in method `self.buffer_date()` to find the posts with the date we want
+        self.user = '' #list of user
         self.twits = ""  # contains the twit fetched from Twitter (text, date, directional ie bullish or bearish)
         self.twit_dictionary = {}  # dictionary with information from twits
 
@@ -96,9 +99,10 @@ class TwitsApi():
         self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         self.twits = "" #we need to reinitialise the list which contains the comments everytime we fetch data
                         #for a new stock
+        self.user = "" #same for user (as `self.twits`)
         self.stock_endpoint = ''.join(['https://twitter.com/search?q=%24', self.init.current_stock,
                                        '&src=typed_query&f=live'])
-        self.twits = pm.webscrap_content(which_driver = self.which_driver,posts_to_return=self.posts_to_return,
+        self.user,self.twits = pm.webscrap_content(which_driver = self.which_driver,posts_to_return=self.posts_to_return,
                                          driver_parameters= self.init.driver_parameters,end_point=self.stock_endpoint,
                                          pause_time=self.init.pause_time,date_to_search = self.date_to_search,
                                          is_twitter= True)
@@ -159,20 +163,26 @@ class TwitsApi():
         """Decorator to loop throught the comments that we webscrap"""
 
         def wrapper_(self):
+            x = 0
             for twit in self.twits:
                 self.twit_dictionary = {}  # dictionary with information from twits
-                func(self,twit)
+                func(self,twit,self.user[x])
                 t = 5
+            #remove duplicate post (text)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first",ignore_index=True)
+            #remove duplicate user's post
+            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
+                (subset=self.init.columns_sentiment[4], keep="first",ignore_index=True)
+
             return self.init.pd_stock_sentiment
         return wrapper_
 
     @loop_twits
-    def write_values(self,twit):
+    def write_values(self,twit,user):
         """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
          (-1 being the most negative and +1 being the most positive and write different values in the
          pandas DataFrame `self.pd_stock_sentiment`"""
 
-        self.init.pd_stock_sentiment = pm.write_values(comment = twit,pv = self.init,source = 2,
+        self.init.pd_stock_sentiment = pm.write_values(user=user,comment = twit,pv = self.init,source = 2,
                                                        model = self.init_sentiment,dict_ = self.twit_dictionary)

@@ -143,7 +143,7 @@ class InitProject():
 
         #list of variables we can change ourself. Be careful when changing the order of a list as we refer to item
         #number of a liste in the code to get the value
-        self.columns_sentiment = ['text','probability','directional','source']
+        self.columns_sentiment = ['text','probability','directional','source','user']
         self.columns_metrics = ["Total average sentiment","Total number of comments", "Stocktwits sentiment accuracy",
                                 "Average sentiment for ", "Nb of comments for "]
         self.comment_source = ['reddit','stocktwit','twitter']
@@ -164,7 +164,7 @@ class InitProject():
         self.subreddit = "wallstreetbets" #subreddit we webscrap data on in `reddit_api.py`
         self.limit = 100000 #max comments to webscrap on reddit in `reddit_api.py`
 
-        self.stock_dictionnary = {} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
+        self.stock_dictionnary = {'ARCH':['ARCH']} #list of stocks we webscrap. We get them in the package `stock_to_trade.py`
 
         #list of variables that are not necessary to change
         self.output_ = 'output/' #name of the folder where the output are stored
