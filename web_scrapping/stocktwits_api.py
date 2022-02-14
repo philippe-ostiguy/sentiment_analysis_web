@@ -33,6 +33,7 @@ from initialize import InitStockTwit
 import re
 import pandas as pd
 import web_scrapping.package_methods as pm
+from web_scrapping.package_methods import PackageMethods
 import os
 import sentiment_analysis as sa
 from collections import defaultdict
@@ -80,7 +81,7 @@ class StockTwitsApi():
         self.init_sentiment = init_sentiment
 
         self.stock_endpoint = ''
-
+        self.pm = PackageMethods() #initialise `PackageMethods` class
         self.class_time = 'st_28bQfzV st_1E79qOs st_3TuKxmZ st_1VMMH6S' #time
         self.class_twits = 'st_29E11sZ st_jGV698i st_1GuPg4J st_qEtgVMo st_2uhTU4W'
         self.class_directional = 'lib_XwnOHoV lib_3UzYkI9 lib_lPsmyQd lib_2TK8fEo' #bull or bear
@@ -102,13 +103,14 @@ class StockTwitsApi():
     def webscrap(self):
         """Performs all the method necessary to webscrap the content on stocktwits and analyse the mood of the
         comments"""
-
+        self.date_ = ''
+        self.date__ == ''
         self.buffer_date()
         self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
 
         self.stock_twits = ""
         self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/',self.init.current_stock])
-        self.stock_twits = pm.webscrap_content(driver_parameters=  self.init.driver_parameters,
+        _, self.stock_twits = pm.webscrap_content(driver_parameters=  self.init.driver_parameters,
                                                end_point=self.stock_endpoint, pause_time=self.init.pause_time,
                                                date_to_search = self.date_to_search,which_driver = self.which_driver,
                                                posts_to_return=self.posts_to_return,
@@ -214,7 +216,7 @@ class StockTwitsApi():
 
                 # check if it contains bullish or bearish or not in the class
                 # then we are able to extract the twit only
-
+                user = twit.split('\n')[0:1][0]
                 twit_directional = twit.split('\n')[1:2][0]
                 if bullish in twit_directional or bearish in twit_directional:
                     twit_tempo = twit.split('\n', 3)[3:4][0]
@@ -224,20 +226,28 @@ class StockTwitsApi():
                     twit_tempo = twit.split('\n', 2)[2:3][0]
                     self.twit_dictionary[self.init.columns_sentiment[2]] = ''
 
-                func(self, twit_tempo)
+                #skipping non-english post
+                if not self.pm.detect_lang(twit_tempo):
+                    continue
 
+                func(self, twit_tempo,user)
+
+            #remove duplicate post (text)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first",ignore_index=True)
+            #remove duplicate user
+            self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
+                (subset=self.init.columns_sentiment[4], keep="first",ignore_index=True)
             return self.init.pd_stock_sentiment
         return wrapper_
 
 
     @loop_twits
-    def write_values(self,twit):
+    def write_values(self,twit,user):
         """Method to determine if mood of each comment (positive, negative) with a score between -1 and 1
          (-1 being the most negative and +1 being the most positive and write different values in the
          pandas DataFrame `self.pd_stock_sentiment`"""
 
         self.init.pd_stock_sentiment = pm.write_values(comment = twit,pv = self.init,
                                                      model = self.init_sentiment,source = 1,
-                                                       dict_ = self.twit_dictionary)
+                                                       dict_ = self.twit_dictionary,user=user)

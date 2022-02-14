@@ -54,8 +54,8 @@ class StockToTrade():
 
 
     def __call__(self):
-        #self.get_trending()
-        #self.shorted_finviz()
+        self.get_trending()
+        self.shorted_finviz()
         self.check_position()
         self.check_cap()
         t=5

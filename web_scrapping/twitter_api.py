@@ -36,8 +36,7 @@ import web_scrapping.package_methods as pm
 import os
 import sentiment_analysis as sa
 from collections import defaultdict
-import web_scrapping.package_methods as pm
-
+from web_scrapping.package_methods import PackageMethods
 
 class TwitsApi():
     """Class to webscrap content on Twitter
@@ -73,7 +72,7 @@ class TwitsApi():
         self.init = init  # variable for the class containing the global variables for the project
         # variable for the class with the model/transformer to analyse twits/comments
         self.init_sentiment = init_sentiment
-
+        self.pm = PackageMethods() #initialise `PackageMethods` class
         self.class_time = 'css-4rbku5 css-18t94o4 css-901oao r-14j79pv r-1loqt21 r-1q142lx r-37j5jr r-a023e6 ' \
                          'r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0'  # time
         self.class_twits = 'css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-kzbkwu'  # time
@@ -94,6 +93,9 @@ class TwitsApi():
     def webscrap(self):
         """Performs all the method necessary to webscrap the content on twitter and analyse the mood of the
         comments"""
+
+        self.date_ = ''
+        self.date__ = ''
 
         self.buffer_date()
         self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
@@ -144,13 +146,15 @@ class TwitsApi():
 
         iteration = 1
         j=0
+        x= 0
         tempo_time = self.init.time_ago
         while iteration < self.buffer_date_:
             #less than 24 hours
             if (iteration - 1 + self.init.time_ago)<24:
                 self.convert_time(iteration-1+self.init.time_ago)
+                x = iteration - 1
             else:
-                self.convert_time(j*24 + 24)  # multiply iteration by 24 to have in day
+                self.convert_time(j*24 + self.init.time_ago + x)  # multiply iteration by 24 to have in day
                 j+=1
 
             if iteration == 1:
@@ -166,15 +170,18 @@ class TwitsApi():
             x = 0
             for twit in self.twits:
                 self.twit_dictionary = {}  # dictionary with information from twits
+                #skipping non-english post
+                if not self.pm.detect_lang(twit):
+                    continue
                 func(self,twit,self.user[x])
-                t = 5
+                x+=1
+
             #remove duplicate post (text)
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[0], keep="first",ignore_index=True)
             #remove duplicate user's post
             self.init.pd_stock_sentiment = self.init.pd_stock_sentiment.drop_duplicates\
                 (subset=self.init.columns_sentiment[4], keep="first",ignore_index=True)
-
             return self.init.pd_stock_sentiment
         return wrapper_
 

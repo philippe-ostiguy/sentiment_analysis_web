@@ -39,6 +39,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.chrome.options import Options as opChrome
 from selenium.webdriver.firefox.options import Options as opFireFox
+import fasttext
 
 
 def delta_date(start_date,end_date):
@@ -118,7 +119,7 @@ def webscrap_content(which_driver,posts_to_return,end_point,pause_time,date_to_s
     twitter_post =[]
     driver = initialise_driver(which_driver,driver_parameters)
     driver.get(end_point)
-    twitter_post = scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter,
+    user,twitter_post = scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter,
                                    stocktwit_class)
     time.sleep(pause_time)
     driver.quit()
@@ -136,9 +137,12 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
     twitter_tempo = []
     twitter_post = []
     user = []
+    screen_height = driver.execute_script("return window.screen.height;")  # return window screen height
+    i = 1
+
     while not element_:
         #we need to make it sleep, (between 1 and 2 minimum) otherwise the browser doesn't have enough time to load
-        time.sleep(1.5)
+        time.sleep(1)
         try:
             element_ = wait.until(EC.presence_of_element_located((By.XPATH,date_to_search)))
         except TimeoutException:
@@ -152,7 +156,6 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
                     user.append(''.join(text_splitting[:1]))
                     twitter_post.append(' '.join(text_splitting[4:]))
                     t=5
-
                 #twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
             #it means that the page doesn't exist and will generate an error
             except:
@@ -166,6 +169,17 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
             except:
                 element_ = True
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+        # go to section in window according to `i` and `screen_height`
+        #driver.execute_script(
+         #   "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+        # return DOM body height
+        scroll_height = driver.execute_script("return document.body.scrollHeight;")
+        i += 1
+
+        # check if we are a the end of the page
+        if (screen_height) * i > scroll_height:
+            element_ = True
 
     #putting the DOM elements (twits) in a dictionary (DOM elements is loaded from bottom to top)
     if not is_twitter:
@@ -212,3 +226,29 @@ def decorator_timer(source):
             return self.init.pd_stock_sentiment
         return wrapper_timer
     return timer
+
+
+class PackageMethods():
+    """
+    `PRETRAINED_MODEL_PATH` : str
+        pre-trained model from the fasttext package. It's important to download the model ('lid.176.bin' or
+         'lif.176.ftz' : https://amitness.com/2019/07/identify-text-language-python/) in the project's directory
+        (or specify the path where it's downloaded in the variable)
+    `self.model` : fct
+        method in the package `fasttext` to  detect language.
+    """
+
+    def __init__(self):
+        super().__init__()
+        PRETRAINED_MODEL_PATH = 'lid.176.bin'
+        self.model = fasttext.load_model(PRETRAINED_MODEL_PATH)
+
+    def detect_lang(self,text):
+        """return `True` if `text` is in English, False otherwise`"""
+        language = self.model.predict(text[0])[0][0].replace('__label__','')
+        #fasttext is not that great to detect language for twits. Anything with $ is often associated with 'pl'
+        #This is why we tolerate 'pl'
+        if language == 'en' or language =='pl':
+            return True
+        else:
+            return False
