@@ -292,7 +292,7 @@ class InitProject():
         #self.options_chrome.add_argument("--disable-gpu")
         self.options_chrome.add_argument("--disable-extensions")
         self.options_chrome.add_argument("--no-sandbox")
-        #self.options_chrome.add_argument("--headless")
+        self.options_chrome.add_argument("--headless")
         #self.option.add_argument("--disable-dev-shm-usage")
         #self.option.add_argument( "--window-size=1920,1080")
 
@@ -302,7 +302,7 @@ class InitProject():
 
         #Options for Firefox driver
         self.option_ff = opFireFox()
-        #self.option_ff.add_argument("--headless")
+        self.option_ff.add_argument("--headless")
         #self.option_ff.add_argument("--no-sandbox")
         #self.option_ff.add_argument("--disable-dev-shm-usage")
         self.ff_language =  'en-US, en'

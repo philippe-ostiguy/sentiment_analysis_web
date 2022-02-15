@@ -96,11 +96,13 @@ class StockToTrade():
             is_redirect = False
             for response_ in response.history:
                 if response_.status_code == 302:
+                    # not possible to see the market cap, so the stock is not popped out of the list
                     tempo_dict.pop(ticker, None)
                     is_redirect = True
                     break
 
             if is_redirect:
+                is_redirect =False
                 continue
 
             soup = bs.BeautifulSoup(response.text, 'lxml')
