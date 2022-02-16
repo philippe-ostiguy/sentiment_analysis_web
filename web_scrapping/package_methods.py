@@ -118,6 +118,7 @@ def webscrap_content(which_driver,posts_to_return,end_point,pause_time,date_to_s
     """
 
     twitter_post =[]
+    user= []
     driver = initialise_driver(which_driver,driver_parameters)
     driver.get(end_point)
     user,twitter_post = scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,is_twitter,
@@ -139,6 +140,7 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
     twitter_post = []
     user = []
     screen_height = driver.execute_script("return window.screen.height;")  # return window screen height
+    #screen_height =1080
     i = 1
 
     while not element_:
@@ -190,7 +192,7 @@ def scroll_to_value(driver,posts_to_return,end_point,pause_time,date_to_search,i
         try :
             twitter_post += [post.text for post in driver.find_elements_by_xpath(posts_to_return)]
         except :
-            return []
+            return [],[]
     return user,twitter_post
 
 def write_values(comment, pv, model,source, dict_,user=None):
@@ -247,7 +249,13 @@ class PackageMethods():
 
     def detect_lang(self,text):
         """return `True` if `text` is in English, False otherwise`"""
-        language = self.model.predict(text[0])[0][0].replace('__label__','')
+
+        #try/except in case `text` is empty, it will throw an error
+        try:
+            language = self.model.predict(text[0])[0][0].replace('__label__','')
+        except :
+            return False
+
         #fasttext is not that great to detect language for twits. Anything with $ is often associated with 'pl'
         #This is why we tolerate 'pl'
         if language == 'en' or language =='pl':

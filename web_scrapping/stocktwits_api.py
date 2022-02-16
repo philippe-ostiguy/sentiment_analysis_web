@@ -104,13 +104,14 @@ class StockTwitsApi():
         """Performs all the method necessary to webscrap the content on stocktwits and analyse the mood of the
         comments"""
         self.date_ = ''
-        self.date__ == ''
+        self.date__ = ''
+        self.date_to_search = ''
         self.buffer_date()
         self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
 
         self.stock_twits = ""
         self.stock_endpoint = ''.join(['https://stocktwits.com/symbol/',self.init.current_stock])
-        _, self.stock_twits = pm.webscrap_content(driver_parameters=  self.init.driver_parameters,
+        _, self.stock_twits = pm.webscrap_content(driver_parameters= self.init.driver_parameters,
                                                end_point=self.stock_endpoint, pause_time=self.init.pause_time,
                                                date_to_search = self.date_to_search,which_driver = self.which_driver,
                                                posts_to_return=self.posts_to_return,

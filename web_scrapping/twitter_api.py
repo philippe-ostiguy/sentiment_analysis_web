@@ -96,7 +96,7 @@ class TwitsApi():
 
         self.date_ = ''
         self.date__ = ''
-
+        self.date_to_search = ''
         self.buffer_date()
         self.date_to_search = '//a[@class="{}" and ({})]'.format(self.class_time, self.date__)
         self.twits = "" #we need to reinitialise the list which contains the comments everytime we fetch data
