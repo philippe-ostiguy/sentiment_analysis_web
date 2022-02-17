@@ -244,7 +244,8 @@ class PackageMethods():
     def __init__(self):
         super().__init__()
 
-        PRETRAINED_MODEL_PATH = os.path.join(os.getcwd(), 'lid.176.bin')
+        PRETRAINED_MODEL_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.pardir,
+                                                             'lid.176.bin'))
         self.model = fasttext.load_model(PRETRAINED_MODEL_PATH)
 
     def detect_lang(self,text):
